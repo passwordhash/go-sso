@@ -37,7 +37,7 @@ var (
     ErrInvalidCredentials = errors.New("invalid credentials")
     ErrUserNotFound       = errors.New("user not found")
     ErrUserExists         = errors.New("user already exists")
-    ErrAppNotFound        = errors.New("app not found")
+    ErrInvalidAppID       = errors.New("invalid app id")
 )
 
 // New возвращает новый экземпляр сервиса аутентификации.
@@ -156,11 +156,11 @@ func handleStorageErr(log *zap.SugaredLogger, err error, op string) error {
 
     case errors.Is(err, storage.ErrUserNotFound):
         log.Infow("user not found", "error", err)
-        return fmt.Errorf("%s: %w", op, ErrUserNotFound)
+        return fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 
     case errors.Is(err, storage.ErrAppNotFound):
         log.Infow("app not found", "error", err)
-        return fmt.Errorf("%s: %w", op, ErrAppNotFound)
+        return fmt.Errorf("%s: %w", op, ErrInvalidAppID)
 
     default:
         return nil // значит это не "известная" ошибка
