@@ -7,6 +7,12 @@ import (
     "time"
 )
 
+const (
+    envLocal   = "local"
+    envDevelop = "dev"
+    envProd    = "prod"
+)
+
 type Config struct {
     Env      string        `yaml:"env" required:"true"`
     TokenTTL time.Duration `yaml:"token_ttl" required:"true"`
