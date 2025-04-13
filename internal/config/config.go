@@ -14,14 +14,14 @@ const (
 )
 
 type Config struct {
-    Env      string        `yaml:"env" required:"true"`
-    TokenTTL time.Duration `yaml:"token_ttl" required:"true"`
+    Env      string        `yaml:"env" env:"ENV" required:"true"`
+    TokenTTL time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" required:"true"`
     GRPC     GRPCConfig    `yaml:"grpc" required:"true"`
 }
 
 type GRPCConfig struct {
-    Port    int           `yaml:"port" required:"true"`
-    Timeout time.Duration `yaml:"timeout" required:"true"`
+    Port    int           `yaml:"port" env:"GRPC_PORT" required:"true"`
+    Timeout time.Duration `yaml:"timeout" env:"TIMEOUT" required:"true"`
 }
 
 func MustLoad() *Config {
