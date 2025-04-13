@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+    app:
+        container_name: go-sso-app
+        build:
+            context: .
+            dockerfile: dev.Dockerfile
+        env_file: .env
+        ports:
+            - ${GRPC_PORT}:${GRPC_PORT}
+        environment:
+            - CONFIG_PATH=${CONFIG_PATH}
+        depends_on:
+            - db
+        volumes:
+            - .:/app
+
+    db:
+        image: postgres:15
+        container_name: go-sso-db
+        restart: always
+        ports:
+            - "${POSTGRES_PORT}:5432"
+        env_file:
+            -   .env
+        environment:
+            POSTGRES_DB: ${POSTGRES_DB}
+            POSTGRES_PORT: ${POSTGRES_PORT}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+
+volumes:
+    pgdata:

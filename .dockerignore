@@ -1,0 +1,10 @@
+.git
+vendor
+*.log
+*.md
+tmp/
+.env
+.idea
+*.out
+*.swp
+

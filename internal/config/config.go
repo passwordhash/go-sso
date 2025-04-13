@@ -31,7 +31,7 @@ func MustLoad() *Config {
     }
 
     if _, err := os.Stat(path); os.IsNotExist(err) {
-        panic("config file does not exist")
+        panic("config file does not exist: " + path)
     }
 
     var cfg Config
@@ -52,7 +52,7 @@ func fetchConfigPath() string {
     flag.Parse()
 
     if res == "" {
-        res = os.Getenv("CONFIG_PAT")
+        res = os.Getenv("CONFIG_PATH")
     }
 
     return res
