@@ -35,6 +35,9 @@ type AppProvider interface {
 
 var (
     ErrInvalidCredentials = errors.New("invalid credentials")
+    ErrUserNotFound       = errors.New("user not found")
+    ErrUserExists         = errors.New("user already exists")
+    ErrAppNotFound        = errors.New("app not found")
 )
 
 // New возвращает новый экземпляр сервиса аутентификации.
@@ -63,15 +66,11 @@ func (a *Auth) Login(ctx context.Context, email, password string, appID int) (st
     log.Infow("logging in user")
 
     user, err := a.userProvider.User(ctx, email)
-    if errors.Is(err, storage.ErrUserNotFound) {
-        a.log.Errorw("user not found", "error", err)
-
-        return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
+    if err := handleStorageErr(log, err, op); err != nil {
+        return "", err
     }
     if err != nil {
-        a.log.Errorw("failed to get user", "error", err)
-
-        return "", fmt.Errorf("%s: %w", op, err)
+        return "", handleInternalErr(log, "failed to get user", op, err)
     }
 
     if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
@@ -81,17 +80,21 @@ func (a *Auth) Login(ctx context.Context, email, password string, appID int) (st
     }
 
     app, err := a.appProvider.App(ctx, appID)
+    if sterr := handleStorageErr(log, err, op); sterr != nil {
+        return "", sterr
+    }
     if err != nil {
-        return "", fmt.Errorf("%s: %w", op, err)
+        return "", handleInternalErr(log, "failed to get app", op, err)
     }
 
     log.Infow("user logged in", "userID", user.ID, "appID", app.ID)
 
     token, err := jwt.NewToken(user, app, a.tokenTTL)
+    if sterr := handleStorageErr(log, err, op); sterr != nil {
+        return "", sterr
+    }
     if err != nil {
-        a.log.Errorw("failed to create token", "error", err)
-
-        return "", fmt.Errorf("%s: %w", op, err)
+        return "", handleInternalErr(log, "failed to create token", op, err)
     }
 
     return token, nil
@@ -108,16 +111,15 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (int
 
     passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
     if err != nil {
-        log.Errorw("failed to hash password", "error", err)
-
-        return 0, err
+        return 0, handleInternalErr(log, "failed to hash password", op, err)
     }
 
     uid, err := a.userSaver.SaveUser(ctx, email, passHash)
+    if sterr := handleStorageErr(log, err, op); sterr != nil {
+        return 0, sterr
+    }
     if err != nil {
-        log.Errorw("failed to save user", "error", err)
-
-        return 0, err
+        return 0, handleInternalErr(log, "failed to save user", op, err)
     }
 
     return uid, nil
@@ -132,13 +134,40 @@ func (a *Auth) IsAdmin(ctx context.Context, userID int64) (bool, error) {
     log.Infow("checking if user is admin")
 
     isAdmin, err := a.userProvider.IsAdmin(ctx, userID)
+    if sterr := handleStorageErr(log, err, op); sterr != nil {
+        return false, sterr
+    }
     if err != nil {
-        log.Errorw("failed to check if user is admin", "error", err)
-
-        return false, fmt.Errorf("%s: %w", op, err)
+        return false, handleInternalErr(log, "failed to check if user is admin", op, err)
     }
 
     log.Infow("user is admin", "isAdmin", isAdmin)
 
     return isAdmin, nil
+}
+
+// handleStorageErr обрабатывает ошибки, возвращаемые хранилищем и логгирует их.
+// Если ошибка не является ошибкой хранилища, возвращает nil.
+func handleStorageErr(log *zap.SugaredLogger, err error, op string) error {
+    switch {
+    case errors.Is(err, storage.ErrUserExists):
+        log.Warnw("user already exists", "error", err)
+        return fmt.Errorf("%s: %w", op, ErrUserExists)
+
+    case errors.Is(err, storage.ErrUserNotFound):
+        log.Infow("user not found", "error", err)
+        return fmt.Errorf("%s: %w", op, ErrUserNotFound)
+
+    case errors.Is(err, storage.ErrAppNotFound):
+        log.Infow("app not found", "error", err)
+        return fmt.Errorf("%s: %w", op, ErrAppNotFound)
+
+    default:
+        return nil // значит это не "известная" ошибка
+    }
+}
+
+func handleInternalErr(log *zap.SugaredLogger, msg, op string, err error) error {
+    log.Errorw(msg, "error", err)
+    return fmt.Errorf("%s: %w", op, err)
 }
