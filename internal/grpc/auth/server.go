@@ -8,6 +8,7 @@ import (
     "google.golang.org/grpc/status"
 )
 
+// Auth интерфейс для аутентификации пользователей (сервисная часть).
 type Auth interface {
     Login(ctx context.Context,
             email string,

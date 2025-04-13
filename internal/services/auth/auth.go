@@ -4,6 +4,7 @@ import (
     "context"
     "go-sso/internal/domain/models"
     "go.uber.org/zap"
+    "golang.org/x/crypto/bcrypt"
     "time"
 )
 
@@ -52,8 +53,28 @@ func (a *Auth) Login(ctx context.Context, email, password string, appID int) (st
 
 // RegisterNewUser регистрирует нового пользователя и возвращает токен.
 // Если пользователь с таким email уже существует, возвращает ошибку.
-func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (string, error) {
-    panic("not implemented")
+func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (int64, error) {
+    const op = "auth.RegisterNewUser"
+
+    log := a.log.With("op", op, "email", email)
+
+    log.Infow("registering new user")
+
+    passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        log.Errorw("failed to hash password", "error", err)
+
+        return 0, err
+    }
+
+    uid, err := a.userSaver.SaveUser(ctx, email, passHash)
+    if err != nil {
+        log.Errorw("failed to save user", "error", err)
+
+        return 0, err
+    }
+
+    return uid, nil
 }
 
 // IsAdmin проверяет, является ли пользователь администратором по id.
