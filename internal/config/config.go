@@ -20,7 +20,7 @@ type Config struct {
 }
 
 type GRPCConfig struct {
-    Port    string        `yaml:"port" required:"true"`
+    Port    int           `yaml:"port" required:"true"`
     Timeout time.Duration `yaml:"timeout" required:"true"`
 }
 
