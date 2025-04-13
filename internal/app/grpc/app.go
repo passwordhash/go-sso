@@ -15,10 +15,10 @@ type App struct {
 }
 
 // New создает новый экземпляр gRPC сервера.
-func New(log *zap.SugaredLogger, port int) *App {
+func New(log *zap.SugaredLogger, authService authgrpc.Auth, port int) *App {
     gRPCServer := grpc.NewServer()
 
-    authgrpc.Register(gRPCServer)
+    authgrpc.Register(gRPCServer, authService)
 
     return &App{
         log:        log,

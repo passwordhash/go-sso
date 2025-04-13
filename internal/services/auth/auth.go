@@ -2,7 +2,11 @@ package auth
 
 import (
     "context"
+    "errors"
+    "fmt"
     "go-sso/internal/domain/models"
+    "go-sso/internal/lib/jwt"
+    "go-sso/internal/storage"
     "go.uber.org/zap"
     "golang.org/x/crypto/bcrypt"
     "time"
@@ -26,8 +30,12 @@ type UserProvider interface {
 }
 
 type AppProvider interface {
-    App(ctx context.Context, appID string) (models.App, error)
+    App(ctx context.Context, appID int) (models.App, error)
 }
+
+var (
+    ErrInvalidCredentials = errors.New("invalid credentials")
+)
 
 // New возвращает новый экземпляр сервиса аутентификации.
 func New(
@@ -48,7 +56,45 @@ func New(
 
 // Login проверяет логин и пароль пользователя и возвращает токен.
 func (a *Auth) Login(ctx context.Context, email, password string, appID int) (string, error) {
-    panic("not implemented")
+    const op = "auth.Login"
+
+    log := a.log.With("op", op, "email", email, "appID", appID)
+
+    log.Infow("logging in user")
+
+    user, err := a.userProvider.User(ctx, email)
+    if errors.Is(err, storage.ErrUserNotFound) {
+        a.log.Errorw("user not found", "error", err)
+
+        return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
+    }
+    if err != nil {
+        a.log.Errorw("failed to get user", "error", err)
+
+        return "", fmt.Errorf("%s: %w", op, err)
+    }
+
+    if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
+        a.log.Infow("invalid credentials", "error", err)
+
+        return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
+    }
+
+    app, err := a.appProvider.App(ctx, appID)
+    if err != nil {
+        return "", fmt.Errorf("%s: %w", op, err)
+    }
+
+    log.Infow("user logged in", "userID", user.ID, "appID", app.ID)
+
+    token, err := jwt.NewToken(user, app, a.tokenTTL)
+    if err != nil {
+        a.log.Errorw("failed to create token", "error", err)
+
+        return "", fmt.Errorf("%s: %w", op, err)
+    }
+
+    return token, nil
 }
 
 // RegisterNewUser регистрирует нового пользователя и возвращает токен.
