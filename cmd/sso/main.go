@@ -3,12 +3,9 @@ package main
 import (
     "go-sso/internal/app"
     "go-sso/internal/config"
-)
-
-const (
-    envLocal   = "local"
-    envDevelop = "dev"
-    envProd    = "prod"
+    "os"
+    "os/signal"
+    "syscall"
 )
 
 func main() {
@@ -20,5 +17,17 @@ func main() {
 
     application := app.New(log, cfg.GRPC.Port, cfg.TokenTTL)
 
-    application.GRPCSrv.MustRun()
+    go application.GRPCSrv.MustRun()
+
+    // Graceful shutdown
+    stop := make(chan os.Signal, 1)
+    signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+    sign := <-stop
+
+    log.Infow("received signal", "signal", sign)
+
+    application.GRPCSrv.Stop()
+
+    log.Infow("stopped SSO application")
 }
