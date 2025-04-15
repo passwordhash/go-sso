@@ -1,11 +1,15 @@
 package storage
 
 import (
-    "errors"
+	"errors"
 )
 
 var (
-    ErrUserExists   = errors.New("user already exists")
-    ErrUserNotFound = errors.New("user not found")
-    ErrAppNotFound  = errors.New("app not found")
+	ErrUserExists   = errors.New("user already exists")
+	ErrUserNotFound = errors.New("user not found")
+	ErrAppNotFound  = errors.New("app not found")
+)
+
+const (
+	ErrUniqueViolation = "23505"
 )

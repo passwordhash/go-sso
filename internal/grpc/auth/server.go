@@ -2,7 +2,9 @@ package auth
 
 import (
     "context"
+    "errors"
     gossov1 "github.com/passwordhash/protos/gen/go/go-sso"
+    "go-sso/internal/services/auth"
     "google.golang.org/grpc"
     "google.golang.org/grpc/codes"
     "google.golang.org/grpc/status"
@@ -46,9 +48,8 @@ func (s *serverAPI) Login(ctx context.Context, req *gossov1.LoginRequest,
     }
 
     token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int(req.GetAppId()))
-    if err != nil {
-        // TODO: ...
-        return nil, status.Errorf(codes.Internal, "interanl error")
+    if serr := s.handleServiceErr(err); serr != nil {
+        return nil, serr
     }
 
     return &gossov1.LoginResponse{
@@ -63,9 +64,8 @@ func (s *serverAPI) Register(ctx context.Context, req *gossov1.RegisterRequest,
     }
 
     userID, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
-    if err != nil {
-        // TODO: ...
-        return nil, status.Errorf(codes.Internal, "interanl error")
+    if serr := s.handleServiceErr(err); serr != nil {
+        return nil, serr
     }
 
     return &gossov1.RegisterResponse{
@@ -80,14 +80,28 @@ func (s *serverAPI) IsAdmin(ctx context.Context, req *gossov1.IsAdminRequest,
     }
 
     isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
-    if err != nil {
-        // TODO: ...
-        return nil, status.Errorf(codes.Internal, "interanl error")
+    if serr := s.handleServiceErr(err); serr != nil {
+        return nil, serr
     }
 
     return &gossov1.IsAdminResponse{
         IsAdmin: isAdmin,
     }, nil
+}
+
+func (s *serverAPI) handleServiceErr(err error) error {
+    switch {
+    case err == nil:
+        return nil
+    case errors.Is(err, auth.ErrUserExists):
+        return status.Error(codes.AlreadyExists, err.Error())
+    case errors.Is(err, auth.ErrUserNotFound):
+        return status.Error(codes.NotFound, err.Error())
+    case errors.Is(err, auth.ErrInvalidCredentials):
+        return status.Error(codes.Unauthenticated, err.Error())
+    default:
+        return status.Error(codes.Internal, "internal error")
+    }
 }
 
 func validateLogin(req *gossov1.LoginRequest) error {
