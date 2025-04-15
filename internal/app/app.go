@@ -3,6 +3,7 @@ package app
 import (
     grpcapp "go-sso/internal/app/grpc"
     "go-sso/internal/services/auth"
+    "go-sso/internal/storage/postgres"
     "go.uber.org/zap"
     "time"
 )
@@ -15,10 +16,14 @@ func New(
         log *zap.SugaredLogger,
         grpcPort int,
         tokenTTL time.Duration,
+        psqlConn string,
 ) *App {
-    // TODO: init db
+    storage, err := postgres.New(psqlConn)
+    if err != nil {
+        log.Fatalw("failed to connect to PostgreSQL", "error", err)
+    }
 
-    authService := auth.New(log, nil, nil, nil, 0)
+    authService := auth.New(log, storage, storage, storage, tokenTTL)
 
     grpcApp := grpcapp.New(log, authService, grpcPort)
 

@@ -91,9 +91,6 @@ func (a *Auth) Login(ctx context.Context, email, password string, appID int) (st
 	log.Infow("user logged in", "userID", user.ID, "appID", app.ID)
 
 	token, err := jwt.NewToken(user, app, a.tokenTTL)
-	if sterr := handleStorageErr(log, err, op); sterr != nil {
-		return "", sterr
-	}
 	if err != nil {
 		return "", handleInternalErr(log, "failed to create token", op, err)
 	}
