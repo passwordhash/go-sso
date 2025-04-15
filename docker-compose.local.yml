@@ -21,12 +21,12 @@ services:
         container_name: go-sso-db
         restart: always
         ports:
-            - "${POSTGRES_PORT}:5432"
+            - "${POSTGRES_OUT_PORT}:5432"
         env_file:
             -   .env
         environment:
             POSTGRES_DB: ${POSTGRES_DB}
-            POSTGRES_PORT: ${POSTGRES_PORT}
+            POSTGRES_PORT: ${POSTGRES_OUT_PORT}
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         volumes:

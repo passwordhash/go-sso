@@ -6,7 +6,7 @@ grpc:
 
 psql:
     host: postgres
-    port: 5434
+    port: 5432
     # user in .env
     # password in .env
     # db in .env

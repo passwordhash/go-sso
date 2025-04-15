@@ -13,7 +13,8 @@ func main() {
 
 	log := config.SetupLogger(cfg.Env)
 
-	log.Infow("starting SSO application...", "config", cfg)
+	log.Info("starting SSO application...")
+	log.Debugw("with ocnfig", "config", cfg)
 
 	application := app.New(log, cfg.GRPC.Port, cfg.TokenTTL, cfg.PSQL.DSN())
 
