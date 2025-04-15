@@ -1,5 +1,6 @@
 .idea
 
 *.out
-
+*.env
+!.env.example
 *.db

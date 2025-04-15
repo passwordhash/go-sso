@@ -3,3 +3,10 @@ token_ttl: 1h
 grpc:
     port: 50055
     timout: 10h
+
+psql:
+    host: postgres
+    port: 5434
+    # user in .env
+    # password in .env
+    # db in .env

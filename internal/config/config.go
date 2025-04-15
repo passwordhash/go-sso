@@ -14,14 +14,22 @@ const (
 )
 
 type Config struct {
-    Env      string        `yaml:"env" required:"true"`
-    TokenTTL time.Duration `yaml:"token_ttl" required:"true"`
+    Env      string        `yaml:"env" env:"ENV" required:"true"`
+    TokenTTL time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" required:"true"`
     GRPC     GRPCConfig    `yaml:"grpc" required:"true"`
+    PSQL     PSQLConfig    `yaml:"psql" required:"true"`
 }
 
 type GRPCConfig struct {
-    Port    int           `yaml:"port" required:"true"`
-    Timeout time.Duration `yaml:"timeout" required:"true"`
+    Port    int           `yaml:"port" env:"GRPC_PORT" required:"true"`
+    Timeout time.Duration `yaml:"timeout" env:"TIMEOUT" required:"true"`
+}
+
+type PSQLConfig struct {
+    Port int    `yaml:"port" env:"POSTGRES_PORT" required:"true"`
+    Host string `yaml:"host" env:"POSTGRES_HOST" required:"true"`
+    User string `yaml:"user" env:"POSTGRES_USER" required:"true"`
+    DB   string `yaml:"db" env:"POSTGRES_DB" required:"true"`
 }
 
 func MustLoad() *Config {
@@ -31,7 +39,7 @@ func MustLoad() *Config {
     }
 
     if _, err := os.Stat(path); os.IsNotExist(err) {
-        panic("config file does not exist")
+        panic("config file does not exist: " + path)
     }
 
     var cfg Config
@@ -52,7 +60,7 @@ func fetchConfigPath() string {
     flag.Parse()
 
     if res == "" {
-        res = os.Getenv("CONFIG_PAT")
+        res = os.Getenv("CONFIG_PATH")
     }
 
     return res
