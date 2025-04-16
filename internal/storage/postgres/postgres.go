@@ -39,15 +39,13 @@ func (s *Storage) SaveUser(
 ) (int64, error) {
 	const op = "storage.postgres.SaveUser"
 
-	stmt, err := s.db.PrepareContext(ctx, `
-        INSERT INTO users (email, password_hash)
-        VALUES ($1 $2)`)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
-	}
-	defer stmt.Close()
+	query := `
+        INSERT INTO users (email, pass_hash) 
+        VALUES ($1, $2) 
+        RETURNING id`
 
-	res, err := stmt.ExecContext(ctx, email, passHash)
+	var id int64
+	err := s.db.QueryRowContext(ctx, query, email, passHash).Scan(&id)
 	if err != nil {
 		var psqlErr *pq.Error
 
@@ -56,11 +54,6 @@ func (s *Storage) SaveUser(
 		}
 
 		return 0, fmt.Errorf("%s: %w", op, email)
-	}
-
-	id, err := res.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return id, nil

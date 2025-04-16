@@ -104,7 +104,6 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (int
 	const op = "auth.RegisterNewUser"
 
 	log := a.log.With("op", op, "email", email)
-
 	log.Infow("registering new user")
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

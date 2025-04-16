@@ -94,11 +94,13 @@ func (s *serverAPI) handleServiceErr(err error) error {
     case err == nil:
         return nil
     case errors.Is(err, auth.ErrUserExists):
-        return status.Error(codes.AlreadyExists, err.Error())
+        return status.Error(codes.AlreadyExists, errors.Unwrap(err).Error())
     case errors.Is(err, auth.ErrUserNotFound):
-        return status.Error(codes.NotFound, err.Error())
+        return status.Error(codes.NotFound, errors.Unwrap(err).Error())
     case errors.Is(err, auth.ErrInvalidCredentials):
-        return status.Error(codes.Unauthenticated, err.Error())
+        return status.Error(codes.Unauthenticated, errors.Unwrap(err).Error())
+    case errors.Is(err, auth.ErrInvalidAppID):
+        return status.Error(codes.NotFound, errors.Unwrap(err).Error())
     default:
         return status.Error(codes.Internal, "internal error")
     }
