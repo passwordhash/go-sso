@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/lib/pq"
-	_ "github.com/lib/pq" // Importing pq for PostgreSQL driver
 	"go-sso/internal/domain/models"
 	"go-sso/internal/storage"
+
+	"github.com/lib/pq"
+	_ "github.com/lib/pq" // Importing pq for PostgreSQL driver
 )
 
 type Storage struct {
@@ -53,7 +54,7 @@ func (s *Storage) SaveUser(
 			return 0, fmt.Errorf("%s: %w", op, storage.ErrUserExists)
 		}
 
-		return 0, fmt.Errorf("%s: %w", op, email)
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return id, nil
