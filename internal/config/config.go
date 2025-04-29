@@ -3,9 +3,11 @@ package config
 import (
 	"flag"
 	"fmt"
-	"github.com/ilyakaznacheev/cleanenv"
 	"os"
 	"time"
+
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 )
 
 const (
@@ -15,24 +17,30 @@ const (
 )
 
 type Config struct {
-	Env      string        `yaml:"env" env:"ENV" required:"true"`
-	TokenTTL time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" required:"true"`
-	GRPC     GRPCConfig    `yaml:"grpc" required:"true"`
-	PSQL     PSQLConfig    `yaml:"psql" required:"true"`
+	Env      string        `yaml:"env" env:"ENV" env-required:"true"`
+	TokenTTL time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" env-required:"true"`
+	GRPC     GRPCConfig    `yaml:"grpc" env-required:"true"`
+	PSQL     PSQLConfig    `yaml:"psql" env-required:"true"`
 }
 
 type GRPCConfig struct {
-	Host    string        `yaml:"host" env:"GRPC_HOST" required:"true"`
-	Port    int           `yaml:"port" env:"GRPC_PORT" required:"true"`
-	Timeout time.Duration `yaml:"timeout" env:"TIMEOUT" required:"true"`
+	// Host    string        `yaml:"host" env:"GRPC_HOST" env-required:"true"`
+	Port    int           `yaml:"port" env:"GRPC_PORT" env-required:"true"`
+	Timeout time.Duration `yaml:"timeout" env:"TIMEOUT" env-required:"true"`
 }
 
 type PSQLConfig struct {
-	Port int    `yaml:"port" env:"POSTGRES_PORT" required:"true"`
-	Host string `yaml:"host" env:"POSTGRES_HOST" required:"true"`
-	User string `yaml:"user" env:"POSTGRES_USER" required:"true"`
-	Pass string `yaml:"pass" env:"POSTGRES_PASSWORD" required:"true"`
-	DB   string `yaml:"db" env:"POSTGRES_DB" required:"true"`
+	Port     int             `yaml:"port" env:"POSTGRES_PORT" env-required:"true"`
+	Host     string          `yaml:"host" env:"POSTGRES_HOST" env-required:"true"`
+	User     string          `yaml:"user" env:"POSTGRES_USER" env-required:"true"`
+	Pass     string          `yaml:"pass" env:"POSTGRES_PASSWORD" env-required:"true"`
+	DB       string          `yaml:"db" env:"POSTGRES_DB" env-required:"true"`
+	Migrator *MigratorConfig `yaml:"migrator" `
+}
+
+type MigratorConfig struct {
+	Path  string `yaml:"path" env:"MIGRATIONS_PATH" env-required:"true"`
+	Table string `yaml:"table" env:"MIGRATIONS_TABLE" env-required:"true"`
 }
 
 func (c *PSQLConfig) DSN() string {
@@ -61,8 +69,10 @@ func MustLoadByPath(configPath string) *Config {
 
 	var cfg Config
 
+	godotenv.Load()
+
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		panic("failed to read config file: " + err.Error())
+		fmt.Printf("read config error, probably some values are not set: %s\n", err.Error())
 	}
 
 	return &cfg

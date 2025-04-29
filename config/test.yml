@@ -1,0 +1,14 @@
+env: "local"  # dev, prod
+token_ttl: 1h
+grpc:
+    port: 50055
+    timeout: 10h
+
+psql:
+    host: localhost
+    port: 5400
+
+    # база данных для тестов
+    migrator:
+      path: "./tests/migrations"
+      table: "migrations_test"

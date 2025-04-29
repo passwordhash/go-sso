@@ -2,7 +2,7 @@ env: "local"  # dev, prod
 token_ttl: 1h
 grpc:
     port: 50055
-    timout: 10h
+    timeout: 10h
 
 psql:
     host: postgres
