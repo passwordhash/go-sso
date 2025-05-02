@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/joho/godotenv"
 )
 
 const (
@@ -24,7 +23,7 @@ type Config struct {
 }
 
 type GRPCConfig struct {
-	// Host    string        `yaml:"host" env:"GRPC_HOST" env-required:"true"`
+	Host    string        `yaml:"host" env:"GRPC_HOST" env-required:"true"`
 	Port    int           `yaml:"port" env:"GRPC_PORT" env-required:"true"`
 	Timeout time.Duration `yaml:"timeout" env:"TIMEOUT" env-required:"true"`
 }
@@ -69,10 +68,8 @@ func MustLoadByPath(configPath string) *Config {
 
 	var cfg Config
 
-	godotenv.Load()
-
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		fmt.Printf("read config error, probably some values are not set: %s\n", err.Error())
+		panic("failed to load config: " + err.Error())
 	}
 
 	return &cfg

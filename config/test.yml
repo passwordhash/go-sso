@@ -1,12 +1,18 @@
 env: "local"  # dev, prod
 token_ttl: 1h
 grpc:
+    host: localhost
     port: 50055
     timeout: 10h
 
 psql:
     host: localhost
-    port: 5400
+    port: 5434
+
+    user: sso
+    pass: postgres
+    db: go-sso
+
 
     # база данных для тестов
     migrator:
