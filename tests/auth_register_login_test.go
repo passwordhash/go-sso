@@ -19,6 +19,8 @@ const (
 	appSecret = "test-secret"
 
 	passDefaultLen = 10
+
+	errMsgDuplicateRegistration = "user already exists"
 )
 
 func TestRegisterLogin_Login_HappyPath(t *testing.T) {
@@ -62,6 +64,28 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 
 	// check if exp of token is in correct range, ttl get from st.Cfg.TokenTTL
 	assert.InDelta(t, loginTime.Add(st.Cfg.TokenTTL).Unix(), claims["exp"].(float64), deltaSeconds)
+}
+
+func TestRegisterLogin_DuplicateRegistratioin(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	email := gofakeit.Email()
+	pass := randomFakePassword()
+
+	respReg, err := st.AuthClient.Register(ctx, &gossov1.RegisterRequest{
+		Email:    email,
+		Password: pass,
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, respReg.GetUserId())
+
+	respReg, err = st.AuthClient.Register(ctx, &gossov1.RegisterRequest{
+		Email:    email,
+		Password: pass,
+	})
+	require.Error(t, err)
+	assert.Empty(t, respReg.GetUserId())
+	assert.ErrorContains(t, err, errMsgDuplicateRegistration)
 }
 
 func randomFakePassword() string {
