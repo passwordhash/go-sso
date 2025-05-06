@@ -7,9 +7,10 @@ import (
 	"go-sso/internal/domain/models"
 	"go-sso/internal/lib/jwt"
 	"go-sso/internal/storage"
+	"time"
+
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 type Auth struct {
@@ -119,6 +120,8 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (int
 		return 0, handleInternalErr(log, "failed to save user", op, err)
 	}
 
+	log.Infow("user registered", "userID", uid)
+
 	return uid, nil
 }
 
@@ -148,7 +151,7 @@ func (a *Auth) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 func handleStorageErr(log *zap.SugaredLogger, err error, op string) error {
 	switch {
 	case errors.Is(err, storage.ErrUserExists):
-		log.Warnw("user already exists", "error", err)
+		log.Warnw("user already exists", "error", err.Error())
 		return fmt.Errorf("%s: %w", op, ErrUserExists)
 
 	case errors.Is(err, storage.ErrUserNotFound):

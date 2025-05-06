@@ -1,9 +1,11 @@
 package tests
 
 import (
-	"go-sso/tests/suite"
 	"testing"
 	"time"
+
+	authService "go-sso/internal/services/auth"
+	"go-sso/tests/suite"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/golang-jwt/jwt/v5"
@@ -85,7 +87,51 @@ func TestRegisterLogin_DuplicateRegistratioin(t *testing.T) {
 	})
 	require.Error(t, err)
 	assert.Empty(t, respReg.GetUserId())
-	assert.ErrorContains(t, err, errMsgDuplicateRegistration)
+	assert.ErrorContains(t, err, authService.ErrUserExists.Error())
+}
+
+func TestRegisterLogin_InvalidEmail(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	email := gofakeit.Email()
+	pass := randomFakePassword()
+
+	respReg, err := st.AuthClient.Register(ctx, &gossov1.RegisterRequest{
+		Email:    email,
+		Password: pass,
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, respReg.GetUserId())
+
+	respReg, err = st.AuthClient.Register(ctx, &gossov1.RegisterRequest{
+		Email:    email,
+		Password: pass,
+	})
+	require.Error(t, err)
+	assert.Empty(t, respReg.GetUserId())
+	assert.ErrorContains(t, err, authService.ErrUserExists.Error())
+}
+
+func TestRegisterLogin_InvalidPassword(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	email := gofakeit.Email()
+	pass := randomFakePassword()
+
+	respReg, err := st.AuthClient.Register(ctx, &gossov1.RegisterRequest{
+		Email:    email,
+		Password: pass,
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, respReg.GetUserId())
+
+	respReg, err = st.AuthClient.Register(ctx, &gossov1.RegisterRequest{
+		Email:    email,
+		Password: pass,
+	})
+	require.Error(t, err)
+	assert.Empty(t, respReg.GetUserId())
+	assert.ErrorContains(t, err, authService.ErrUserExists.Error())
 }
 
 func randomFakePassword() string {
