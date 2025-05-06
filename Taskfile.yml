@@ -1,0 +1,9 @@
+version: "3"
+
+tasks:
+    func-test:
+        desc: Запуск функциональных тестов в директории tests
+        cmds:
+            - go test -v ./tests/...
+        env:
+            GO111MODULE: on
