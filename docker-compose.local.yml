@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
     app:
@@ -7,6 +7,8 @@ services:
             context: .
             dockerfile: dev.Dockerfile
         env_file: .env
+        networks:
+            - shared-net
         ports:
             - ${GRPC_PORT}:${GRPC_PORT}
         environment:
@@ -23,7 +25,9 @@ services:
         ports:
             - "${POSTGRES_OUT_PORT}:5432"
         env_file:
-            -   .env
+            - .env
+        networks:
+            - shared-net
         environment:
             POSTGRES_DB: ${POSTGRES_DB}
             POSTGRES_PORT: ${POSTGRES_OUT_PORT}
@@ -35,10 +39,12 @@ services:
     migrate:
         image: migrate/migrate
         container_name: go-sso-migrate
-        entrypoint: [
-            "sh", "-c",
-            "sleep 5 && migrate -path /migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable up"
-        ]
+        entrypoint:
+            [
+                "sh",
+                "-c",
+                "sleep 5 && migrate -path /migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable up",
+            ]
         depends_on:
             - postgres
         volumes:
@@ -46,3 +52,6 @@ services:
 
 volumes:
     pgdata:
+networks:
+    shared-net:
+        external: true

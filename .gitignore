@@ -7,3 +7,5 @@
 *.db
 
 .zed/
+
+.DS_Store
