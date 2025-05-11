@@ -37,27 +37,27 @@ func (s *Storage) SaveUser(
 	ctx context.Context,
 	email string,
 	passHash []byte,
-) (int64, error) {
+) (string, error) {
 	const op = "storage.postgres.SaveUser"
 
 	query := `
-        INSERT INTO users (email, pass_hash) 
-        VALUES ($1, $2) 
-        RETURNING id`
+        INSERT INTO users (email, pass_hash)
+        VALUES ($1, $2)
+        RETURNING uuid`
 
-	var id int64
-	err := s.db.QueryRowContext(ctx, query, email, passHash).Scan(&id)
+	var uuid string
+	err := s.db.QueryRowContext(ctx, query, email, passHash).Scan(&uuid)
 	if err != nil {
 		var psqlErr *pq.Error
 
 		if errors.As(err, &psqlErr) && psqlErr.Code == storage.ErrUniqueViolation {
-			return 0, fmt.Errorf("%s: %w", op, storage.ErrUserExists)
+			return "", fmt.Errorf("%s: %w", op, storage.ErrUserExists)
 		}
 
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	return id, nil
+	return uuid, nil
 }
 
 // User возвращает пользователя по его email
@@ -65,7 +65,7 @@ func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
 	const op = "storage.postgres.User"
 
 	stmt, err := s.db.PrepareContext(ctx, `
-		SELECT id, email, pass_hash
+		SELECT uuid, email, pass_hash
 		FROM users
 		WHERE email = $1`)
 	if err != nil {
@@ -76,7 +76,7 @@ func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
 	row := stmt.QueryRowContext(ctx, email)
 
 	var user models.User
-	err = row.Scan(&user.ID, &user.Email, &user.PassHash)
+	err = row.Scan(&user.UUID, &user.Email, &user.PassHash)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.User{}, fmt.Errorf("%s: %w", op, storage.ErrUserNotFound)
@@ -93,7 +93,7 @@ func (s *Storage) IsAdmin(ctx context.Context, uid int64) (bool, error) {
 
 	stmt, err := s.db.PrepareContext(ctx, `
 		SELECT is_admin
-		FROM users 
+		FROM users
 		WHERE id = $1`)
 	if err != nil {
 		return false, fmt.Errorf("%s: %w", op, err)

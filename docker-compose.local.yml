@@ -39,11 +39,13 @@ services:
     migrate:
         image: migrate/migrate
         container_name: go-sso-migrate
+        networks:
+            - shared-net
         entrypoint:
             [
                 "sh",
                 "-c",
-                "sleep 5 && migrate -path /migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable up",
+                "sleep 5 && migrate -path /migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@go-sso-db:5432/${POSTGRES_DB}?sslmode=disable up",
             ]
         depends_on:
             - postgres

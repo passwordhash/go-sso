@@ -22,9 +22,9 @@ type Auth interface {
 	RegisterNewUser(ctx context.Context,
 		email string,
 		password string,
-	) (userID int64, err error)
+	) (userUUID string, err error)
 
-	IsAdmin(ctx context.Context, userID int64) (isAdmin bool, err error)
+	// IsAdmin(ctx context.Context, userID int64) (isAdmin bool, err error)
 }
 
 type serverAPI struct {
@@ -64,29 +64,13 @@ func (s *serverAPI) Register(ctx context.Context, req *gossov1.RegisterRequest,
 		return nil, err
 	}
 
-	userID, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
+	userUUID, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
 	if serr := s.handleServiceErr(err); serr != nil {
 		return nil, serr
 	}
 
 	return &gossov1.RegisterResponse{
-		UserId: userID,
-	}, nil
-}
-
-func (s *serverAPI) IsAdmin(ctx context.Context, req *gossov1.IsAdminRequest,
-) (*gossov1.IsAdminResponse, error) {
-	if err := validateIsAdmin(req); err != nil {
-		return nil, err
-	}
-
-	isAdmin, err := s.auth.IsAdmin(ctx, req.GetUserId())
-	if serr := s.handleServiceErr(err); serr != nil {
-		return nil, serr
-	}
-
-	return &gossov1.IsAdminResponse{
-		IsAdmin: isAdmin,
+		UserUuid: userUUID,
 	}, nil
 }
 
@@ -132,15 +116,6 @@ func validateRegister(req *gossov1.RegisterRequest) error {
 
 	if req.GetPassword() == "" {
 		return status.Errorf(codes.InvalidArgument, "password is required")
-	}
-
-	return nil
-}
-
-func validateIsAdmin(req *gossov1.IsAdminRequest) error {
-	// TODO: add validate lib
-	if req.GetUserId() == emptyValue {
-		return status.Errorf(codes.InvalidArgument, "user_id is required")
 	}
 
 	return nil

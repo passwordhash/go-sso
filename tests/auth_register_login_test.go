@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -36,7 +37,7 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 		Password: pass,
 	})
 	require.NoError(t, err)
-	assert.NotEmpty(t, respReg.GetUserId())
+	assert.NotEmpty(t, respReg.GetUserUuid())
 
 	respLogin, err := st.AuthClient.Login(ctx, &gossov1.LoginRequest{
 		Email:    email,
@@ -58,7 +59,8 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	claims, ok := tokenParsed.Claims.(jwt.MapClaims)
 	require.True(t, ok)
 
-	assert.Equal(t, respReg.GetUserId(), int64(claims["uid"].(float64)))
+	fmt.Println(claims)
+	assert.Equal(t, respReg.GetUserUuid(), claims["uuid"].(string))
 	assert.Equal(t, email, claims["email"].(string))
 	assert.Equal(t, appID, int(claims["app_id"].(float64)))
 
@@ -79,14 +81,14 @@ func TestRegisterLogin_DuplicateRegistratioin(t *testing.T) {
 		Password: pass,
 	})
 	require.NoError(t, err)
-	assert.NotEmpty(t, respReg.GetUserId())
+	assert.NotEmpty(t, respReg.GetUserUuid())
 
 	respReg, err = st.AuthClient.Register(ctx, &gossov1.RegisterRequest{
 		Email:    email,
 		Password: pass,
 	})
 	require.Error(t, err)
-	assert.Empty(t, respReg.GetUserId())
+	assert.Empty(t, respReg.GetUserUuid())
 	assert.ErrorContains(t, err, authService.ErrUserExists.Error())
 }
 
@@ -101,14 +103,14 @@ func TestRegisterLogin_InvalidEmail(t *testing.T) {
 		Password: pass,
 	})
 	require.NoError(t, err)
-	assert.NotEmpty(t, respReg.GetUserId())
+	assert.NotEmpty(t, respReg.GetUserUuid())
 
 	respReg, err = st.AuthClient.Register(ctx, &gossov1.RegisterRequest{
 		Email:    email,
 		Password: pass,
 	})
 	require.Error(t, err)
-	assert.Empty(t, respReg.GetUserId())
+	assert.Empty(t, respReg.GetUserUuid())
 	assert.ErrorContains(t, err, authService.ErrUserExists.Error())
 }
 
@@ -123,14 +125,14 @@ func TestRegisterLogin_InvalidPassword(t *testing.T) {
 		Password: pass,
 	})
 	require.NoError(t, err)
-	assert.NotEmpty(t, respReg.GetUserId())
+	assert.NotEmpty(t, respReg.GetUserUuid())
 
 	respReg, err = st.AuthClient.Register(ctx, &gossov1.RegisterRequest{
 		Email:    email,
 		Password: pass,
 	})
 	require.Error(t, err)
-	assert.Empty(t, respReg.GetUserId())
+	assert.Empty(t, respReg.GetUserUuid())
 	assert.ErrorContains(t, err, authService.ErrUserExists.Error())
 }
 

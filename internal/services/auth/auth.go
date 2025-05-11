@@ -22,12 +22,12 @@ type Auth struct {
 }
 
 type UserSaver interface {
-	SaveUser(ctx context.Context, email string, passHash []byte) (uid int64, err error)
+	SaveUser(ctx context.Context, email string, passHash []byte) (uuid string, err error)
 }
 
 type UserProvider interface {
 	User(ctx context.Context, email string) (models.User, error)
-	IsAdmin(ctx context.Context, uid int64) (bool, error)
+	// IsAdmin(ctx context.Context, uid int64) (bool, error)
 }
 
 type AppProvider interface {
@@ -89,7 +89,7 @@ func (a *Auth) Login(ctx context.Context, email, password string, appID int) (st
 		return "", handleInternalErr(log, "failed to get app", op, err)
 	}
 
-	log.Infow("user logged in", "userID", user.ID, "appID", app.ID)
+	log.Infow("user logged in", "userID", user.UUID, "appID", app.ID)
 
 	token, err := jwt.NewToken(user, app, a.tokenTTL)
 	if err != nil {
@@ -101,7 +101,7 @@ func (a *Auth) Login(ctx context.Context, email, password string, appID int) (st
 
 // RegisterNewUser регистрирует нового пользователя и возвращает токен.
 // Если пользователь с таким email уже существует, возвращает ошибку.
-func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (int64, error) {
+func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (string, error) {
 	const op = "auth.RegisterNewUser"
 
 	log := a.log.With("op", op, "email", email)
@@ -109,41 +109,20 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (int
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return 0, handleInternalErr(log, "failed to hash password", op, err)
+		return "", handleInternalErr(log, "failed to hash password", op, err)
 	}
 
-	uid, err := a.userSaver.SaveUser(ctx, email, passHash)
+	userUUID, err := a.userSaver.SaveUser(ctx, email, passHash)
 	if sterr := handleStorageErr(log, err, op); sterr != nil {
-		return 0, sterr
+		return "", sterr
 	}
 	if err != nil {
-		return 0, handleInternalErr(log, "failed to save user", op, err)
+		return "", handleInternalErr(log, "failed to save user", op, err)
 	}
 
-	log.Infow("user registered", "userID", uid)
+	log.Infow("user registered", "userUUID", userUUID)
 
-	return uid, nil
-}
-
-// IsAdmin проверяет, является ли пользователь администратором по id.
-func (a *Auth) IsAdmin(ctx context.Context, userID int64) (bool, error) {
-	const op = "auth.IsAdmin"
-
-	log := a.log.With("op", op, "userID", userID)
-
-	log.Infow("checking if user is admin")
-
-	isAdmin, err := a.userProvider.IsAdmin(ctx, userID)
-	if sterr := handleStorageErr(log, err, op); sterr != nil {
-		return false, sterr
-	}
-	if err != nil {
-		return false, handleInternalErr(log, "failed to check if user is admin", op, err)
-	}
-
-	log.Infow("user is admin", "isAdmin", isAdmin)
-
-	return isAdmin, nil
+	return userUUID, nil
 }
 
 // handleStorageErr обрабатывает ошибки, возвращаемые хранилищем и логгирует их.
