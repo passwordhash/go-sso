@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"go-sso/internal/app"
 	"go-sso/internal/config"
 	"os"
@@ -9,6 +10,8 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
 	cfg := config.MustLoad()
 
 	log := config.SetupLogger(cfg.Env)
@@ -16,7 +19,7 @@ func main() {
 	log.Info("starting SSO application...")
 	log.Debugw("with ocnfig", "config", cfg)
 
-	application := app.New(log, cfg.GRPC.Port, cfg.TokenTTL, cfg.PSQL.DSN())
+	application := app.New(ctx, log, cfg)
 
 	go application.GRPCSrv.MustRun()
 

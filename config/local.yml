@@ -16,3 +16,4 @@ psql:
 vault:
     addr: ${VAULT_ADDR}
     token: ${VAULT_TOKEN}
+    timeout: 20s

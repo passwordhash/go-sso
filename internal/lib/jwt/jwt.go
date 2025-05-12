@@ -1,6 +1,8 @@
 package jwt
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"go-sso/internal/domain/models"
 	"time"
 
@@ -24,4 +26,13 @@ func NewToken(user models.User, app models.App, duration time.Duration) (string,
 	}
 
 	return tokenString, nil
+}
+
+func GenerateHS256Secret() (string, error) {
+	bytes := make([]byte, 32) // 256 бит
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(bytes), nil
 }

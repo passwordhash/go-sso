@@ -39,8 +39,9 @@ type PSQLConfig struct {
 }
 
 type VaultConfig struct {
-	Addr  string `yaml:"addr" env:"VAULT_ADDR" env-required:"true"`
-	Token string `yaml:"token" env:"VAULT_TOKEN" env-required:"true"`
+	Addr    string        `yaml:"addr" env:"VAULT_ADDR" env-required:"true"`
+	Token   string        `yaml:"token" env:"VAULT_TOKEN" env-required:"true"`
+	Timeout time.Duration `yaml:"timeout" env:"VAULT_TIMEOUT" env-required:"true"`
 }
 
 type MigratorConfig struct {

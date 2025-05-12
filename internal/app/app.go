@@ -1,31 +1,46 @@
 package app
 
 import (
-    grpcapp "go-sso/internal/app/grpc"
-    "go-sso/internal/services/auth"
-    "go-sso/internal/storage/postgres"
-    "go.uber.org/zap"
-    "time"
+	"context"
+	grpcapp "go-sso/internal/app/grpc"
+	"go-sso/internal/config"
+	vaultlib "go-sso/internal/lib/vault"
+	"go-sso/internal/services/auth"
+	"go-sso/internal/storage/postgres"
+
+	"go.uber.org/zap"
 )
 
 type App struct {
-    GRPCSrv *grpcapp.App
+	GRPCSrv *grpcapp.App
 }
 
 func New(
-        log *zap.SugaredLogger,
-        grpcPort int,
-        tokenTTL time.Duration,
-        psqlConn string,
+	ctx context.Context,
+	log *zap.SugaredLogger,
+	cfg *config.Config,
 ) *App {
-    storage, err := postgres.New(psqlConn)
-    if err != nil {
-        log.Fatalw("failed to connect to PostgreSQL", "error", err)
-    }
+	storage, err := postgres.New(cfg.PSQL.DSN())
+	if err != nil {
+		log.Fatalw("failed to connect to PostgreSQL", "error", err)
+	}
 
-    authService := auth.New(log, storage, storage, storage, tokenTTL)
+	authService := auth.New(log, storage, storage, storage, cfg.TokenTTL)
 
-    grpcApp := grpcapp.New(log, authService, grpcPort)
+	vaultClient := vaultlib.New(ctx,
+		log,
+		cfg.Vault.Addr,
+		cfg.Vault.Token,
+		cfg.Vault.Timeout,
+	)
 
-    return &App{GRPCSrv: grpcApp}
+	grpcApp := grpcapp.New(log,
+		vaultClient,
+		authService,
+		cfg.GRPC.Port,
+	)
+
+	return &App{
+		GRPCSrv: grpcApp,
+	}
 }

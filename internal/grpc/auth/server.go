@@ -5,6 +5,8 @@ import (
 	"errors"
 	"go-sso/internal/services/auth"
 
+	vaultlib "go-sso/internal/lib/vault"
+
 	gossov1 "github.com/passwordhash/protos/gen/go/go-sso"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -32,7 +34,7 @@ type serverAPI struct {
 	auth Auth
 }
 
-func Register(gRPC *grpc.Server, auth Auth) {
+func Register(gRPC *grpc.Server, Vault *vaultlib.Client, auth Auth) {
 	gossov1.RegisterAuthServer(gRPC, &serverAPI{
 		auth: auth,
 	})
