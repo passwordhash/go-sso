@@ -12,3 +12,7 @@ psql:
     user: sso
     password: postgres
     db: go-sso
+
+vault:
+    addr: ${VAULT_ADDR}
+    token: ${VAULT_TOKEN}

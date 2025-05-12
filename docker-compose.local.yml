@@ -52,8 +52,24 @@ services:
         volumes:
             - ./migrations:/migrations
 
+    vault:
+        image: hashicorp/vault:1.15
+        container_name: go-sso-vault
+        restart: unless-stopped
+        cap_add:
+            - IPC_LOCK
+        environment:
+            VAULT_DEV_ROOT_TOKEN_ID: root
+            VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+        ports:
+            - "8200:8200"
+        networks:
+            - shared-net
+        command: server -dev
+
 volumes:
     pgdata:
+
 networks:
     shared-net:
         external: true

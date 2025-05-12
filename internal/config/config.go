@@ -19,6 +19,7 @@ type Config struct {
 	Env      string        `yaml:"env" env:"ENV" env-required:"true"`
 	TokenTTL time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" env-required:"true"`
 	GRPC     GRPCConfig    `yaml:"grpc" env-required:"true"`
+	Vault    VaultConfig   `yaml:"vault" env-required:"true"`
 	PSQL     PSQLConfig    `yaml:"psql" env-required:"true"`
 }
 
@@ -35,6 +36,11 @@ type PSQLConfig struct {
 	Pass     string          `yaml:"pass" env:"POSTGRES_PASSWORD" env-required:"true"`
 	DB       string          `yaml:"db" env:"POSTGRES_DB" env-required:"true"`
 	Migrator *MigratorConfig `yaml:"migrator" `
+}
+
+type VaultConfig struct {
+	Addr  string `yaml:"addr" env:"VAULT_ADDR" env-required:"true"`
+	Token string `yaml:"token" env:"VAULT_TOKEN" env-required:"true"`
 }
 
 type MigratorConfig struct {
