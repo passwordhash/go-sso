@@ -23,7 +23,7 @@ type Auth interface {
 	Login(ctx context.Context,
 		email string,
 		password string,
-		appID int,
+		appName string,
 	) (token string, err error)
 
 	SigningKey(ctx context.Context, appName string) (key string, err error)
@@ -66,7 +66,7 @@ func (s *serverAPI) Login(ctx context.Context, req *gossov1.LoginRequest,
 		return nil, err
 	}
 
-	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), int(req.GetAppId()))
+	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword(), req.GetAppName())
 	if serr := s.handleServiceErr(err); serr != nil {
 		return nil, serr
 	}
@@ -123,7 +123,7 @@ func validateLogin(req *gossov1.LoginRequest) error {
 		return status.Errorf(codes.InvalidArgument, "password is required")
 	}
 
-	if req.GetAppId() == emptyValue {
+	if req.GetAppName() == "" {
 		return status.Errorf(codes.InvalidArgument, "app_id is required")
 	}
 

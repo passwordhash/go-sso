@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/vault-client-go v0.4.3
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/lib/pq v1.10.9
-	github.com/passwordhash/protos v0.0.5
+	github.com/passwordhash/protos v0.0.7
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.37.0

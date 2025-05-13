@@ -81,10 +81,10 @@ func New(
 }
 
 // Login проверяет логин и пароль пользователя и возвращает токен.
-func (a *Auth) Login(ctx context.Context, email, password string, appID int) (string, error) {
+func (a *Auth) Login(ctx context.Context, email, password string, appName string) (string, error) {
 	const op = "auth.Login"
 
-	log := a.log.With("op", op, "email", email, "appID", appID)
+	log := a.log.With("op", op, "email", email, "appName", appName)
 
 	log.Infow("logging in user")
 
@@ -102,17 +102,15 @@ func (a *Auth) Login(ctx context.Context, email, password string, appID int) (st
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
-	app, err := a.appProvider.App(ctx, appID)
-	if sterr := handleStorageErr(log, err, op); sterr != nil {
-		return "", sterr
-	}
+	log.Infow("user logged in", "userID", user.UUID, "appNzme", appName)
+
+	secret, err := a.signingKeyProvider.Key(ctx, appName)
 	if err != nil {
-		return "", handleInternalErr(log, "failed to get app", op, err)
+		log.Errorw("failed to get signing key", "error", err)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	log.Infow("user logged in", "userID", user.UUID, "appID", app.ID)
-
-	token, err := jwt.NewToken(user, app, a.tokenTTL)
+	token, err := jwt.NewToken(user, secret, a.tokenTTL)
 	if err != nil {
 		return "", handleInternalErr(log, "failed to create token", op, err)
 	}

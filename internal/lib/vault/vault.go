@@ -23,6 +23,8 @@ type Client struct {
 	api *vault.Client
 }
 
+// TODO: переместить в storage слой ?
+
 // Создать новый клиент Vault
 func New(
 	ctx context.Context,
