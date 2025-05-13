@@ -8,6 +8,10 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	secretsPath = "/secret/go-sso/clients/"
+)
+
 type Client struct {
 	api *vault.Client
 }
@@ -29,6 +33,7 @@ func New(
 	}
 
 	// authenticate with a root token (insecure)
+	// Для прода использовать approle
 	if err := c.SetToken(token); err != nil {
 		log.Fatalw("failed to authenticate with vault", zap.Error(err))
 	}

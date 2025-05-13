@@ -15,18 +15,18 @@ import (
 
 // Auth интерфейс для аутентификации пользователей (сервисная часть).
 type Auth interface {
+	RegisterNewUser(ctx context.Context,
+		email string,
+		password string,
+	) (userUUID string, err error)
+
 	Login(ctx context.Context,
 		email string,
 		password string,
 		appID int,
 	) (token string, err error)
 
-	RegisterNewUser(ctx context.Context,
-		email string,
-		password string,
-	) (userUUID string, err error)
-
-	// IsAdmin(ctx context.Context, userID int64) (isAdmin bool, err error)
+	SigningKey(ctx context.Context, appName string) (key string, err error)
 }
 
 type serverAPI struct {
@@ -44,6 +44,22 @@ const (
 	emptyValue = 0
 )
 
+func (s *serverAPI) Register(ctx context.Context, req *gossov1.RegisterRequest,
+) (*gossov1.RegisterResponse, error) {
+	if err := validateRegister(req); err != nil {
+		return nil, err
+	}
+
+	userUUID, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
+	if serr := s.handleServiceErr(err); serr != nil {
+		return nil, serr
+	}
+
+	return &gossov1.RegisterResponse{
+		UserUuid: userUUID,
+	}, nil
+}
+
 func (s *serverAPI) Login(ctx context.Context, req *gossov1.LoginRequest,
 ) (*gossov1.LoginResponse, error) {
 	if err := validateLogin(req); err != nil {
@@ -60,19 +76,21 @@ func (s *serverAPI) Login(ctx context.Context, req *gossov1.LoginRequest,
 	}, nil
 }
 
-func (s *serverAPI) Register(ctx context.Context, req *gossov1.RegisterRequest,
-) (*gossov1.RegisterResponse, error) {
-	if err := validateRegister(req); err != nil {
-		return nil, err
+func (s *serverAPI) SigningKey(
+	ctx context.Context,
+	req *gossov1.SigningKeyRequest,
+) (*gossov1.SigningKeyResponse, error) {
+	if req.AppName == "" {
+		return nil, status.Error(codes.InvalidArgument, "app name is required")
 	}
 
-	userUUID, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword())
-	if serr := s.handleServiceErr(err); serr != nil {
-		return nil, serr
+	key, err := s.auth.SigningKey(ctx, req.AppName)
+	if err != nil {
+		panic("handle errors")
 	}
 
-	return &gossov1.RegisterResponse{
-		UserUuid: userUUID,
+	return &gossov1.SigningKeyResponse{
+		SigningKey: key,
 	}, nil
 }
 
