@@ -25,14 +25,14 @@ func New(
 		log.Fatalw("failed to connect to PostgreSQL", "error", err)
 	}
 
-	authService := auth.New(log, storage, storage, storage, cfg.TokenTTL)
-
 	vaultClient := vaultlib.New(ctx,
 		log,
 		cfg.Vault.Addr,
 		cfg.Vault.Token,
 		cfg.Vault.Timeout,
 	)
+
+	authService := auth.New(log, storage, storage, storage, vaultClient, vaultClient, cfg.TokenTTL)
 
 	grpcApp := grpcapp.New(log,
 		vaultClient,

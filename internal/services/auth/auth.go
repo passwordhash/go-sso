@@ -14,11 +14,15 @@ import (
 )
 
 type Auth struct {
-	log          *zap.SugaredLogger
-	userSaver    UserSaver
-	userProvider UserProvider
-	appProvider  AppProvider
-	tokenTTL     time.Duration
+	log *zap.SugaredLogger
+
+	userSaver          UserSaver
+	userProvider       UserProvider
+	appProvider        AppProvider
+	signingKeySaver    SigningKeySaver
+	signingKeyProvider SigningKeyProvider
+
+	tokenTTL time.Duration
 }
 
 type UserSaver interface {
@@ -27,11 +31,18 @@ type UserSaver interface {
 
 type UserProvider interface {
 	User(ctx context.Context, email string) (models.User, error)
-	// IsAdmin(ctx context.Context, uid int64) (bool, error)
 }
 
 type AppProvider interface {
 	App(ctx context.Context, appID int) (models.App, error)
+}
+
+type SigningKeySaver interface {
+	SaveKey(ctx context.Context, appName string, key []byte) error
+}
+
+type SigningKeyProvider interface {
+	Key(ctx context.Context, appName string) ([]byte, error)
 }
 
 // Ошибки, которые могут возникнуть при работе с сервисом аутентификации.
@@ -48,14 +59,20 @@ func New(
 	userSaver UserSaver,
 	userProvider UserProvider,
 	appProvider AppProvider,
+	signingKeySaver SigningKeySaver,
+	signingKeyProvider SigningKeyProvider,
 	tokenTTL time.Duration,
 ) *Auth {
 	return &Auth{
-		log:          log,
-		userSaver:    userSaver,
-		userProvider: userProvider,
-		appProvider:  appProvider,
-		tokenTTL:     tokenTTL,
+		log: log,
+
+		userSaver:          userSaver,
+		userProvider:       userProvider,
+		appProvider:        appProvider,
+		signingKeySaver:    signingKeySaver,
+		signingKeyProvider: signingKeyProvider,
+
+		tokenTTL: tokenTTL,
 	}
 }
 
@@ -123,6 +140,23 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (str
 	log.Infow("user registered", "userUUID", userUUID)
 
 	return userUUID, nil
+}
+
+// SigningKey возвращает ключ подписи для приложения с заданным именем.
+func (a *Auth) SigningKey(ctx context.Context, appName string) ([]byte, error) {
+	const op = "auth.SigningKey"
+
+	log := a.log.With("op", op, "appName", appName)
+	log.Infow("getting signing key")
+
+	key, err := a.signingKeyProvider.Key(ctx, appName)
+	// TODO: отделить ошибку от хранилища и внутреннюю ошибку
+	if err != nil || key == nil {
+		log.Infow("failed to get signing key", "error", err)
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return key, nil
 }
 
 // handleStorageErr обрабатывает ошибки, возвращаемые хранилищем и логгирует их.

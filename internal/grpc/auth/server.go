@@ -26,7 +26,7 @@ type Auth interface {
 		appID int,
 	) (token string, err error)
 
-	SigningKey(ctx context.Context, appName string) (key string, err error)
+	SigningKey(ctx context.Context, appName string) (key []byte, err error)
 }
 
 type serverAPI struct {

@@ -2,14 +2,19 @@ package vault
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/vault-client-go"
+	"github.com/hashicorp/vault-client-go/schema"
 	"go.uber.org/zap"
 )
 
 const (
-	secretsPath = "/secret/go-sso/clients/"
+	signingKeyDataKey = "key"
+
+	mountPath   = "secret"
+	secretsPath = "/secret/go-sso/clients"
 )
 
 type Client struct {
@@ -41,4 +46,40 @@ func New(
 	return &Client{
 		api: c,
 	}
+}
+
+func (c *Client) SaveKey(ctx context.Context, appName string, key []byte) error {
+	appPath := fmt.Sprintf("%s/%s", secretsPath, appName)
+
+	secret := map[string]interface{}{
+		signingKeyDataKey: key,
+	}
+
+	_, err := c.api.Secrets.KvV2Write(ctx,
+		appPath,
+		schema.KvV2WriteRequest{
+			Data: secret,
+		},
+		vault.WithMountPath(mountPath))
+	if err != nil {
+		return fmt.Errorf("failed to write secret to vault: %w", err)
+	}
+
+	return nil
+}
+
+func (c *Client) Key(ctx context.Context, appName string) ([]byte, error) {
+	appPath := fmt.Sprintf("%s/%s", secretsPath, appName)
+
+	resp, err := c.api.Secrets.KvV2Read(ctx, appPath, vault.WithMountPath(mountPath))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read secret from vault: %w", err)
+	}
+
+	key, ok := resp.Data.Data[signingKeyDataKey]
+	if !ok {
+		return nil, fmt.Errorf("key not found in secret: %s", appPath)
+	}
+
+	return key.([]byte), nil
 }
