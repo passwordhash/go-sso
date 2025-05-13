@@ -136,6 +136,32 @@ func TestRegisterLogin_InvalidPassword(t *testing.T) {
 	assert.ErrorContains(t, err, authService.ErrUserExists.Error())
 }
 
+func TestGetSigningKey(t *testing.T) {
+	ctx, st := suite.New(t)
+
+	// Проверяем, что при пустом имени приложения возвращается ошибка
+	invalidArgResp, err := st.AuthClient.SigningKey(ctx, &gossov1.SigningKeyRequest{
+		AppName: "",
+	})
+	require.Error(t, err)
+	assert.Empty(t, invalidArgResp.GetSigningKey())
+
+	appName := gofakeit.BuzzWord()
+	// Первый запрос должен вернуть должен сгенерировать новый ключ
+	firstResp, err := st.AuthClient.SigningKey(ctx, &gossov1.SigningKeyRequest{
+		AppName: appName,
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, firstResp.GetSigningKey())
+
+	// Повторой запрос должен вернуть тот же ключ
+	secondResp, err := st.AuthClient.SigningKey(ctx, &gossov1.SigningKeyRequest{
+		AppName: appName,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, firstResp.GetSigningKey(), secondResp.GetSigningKey())
+}
+
 func randomFakePassword() string {
 	return gofakeit.Password(true, true, true, true, false, passDefaultLen)
 }

@@ -1,4 +1,4 @@
-env: "local"  # dev, prod
+env: "local" # dev, prod
 token_ttl: 1h
 grpc:
     host: localhost
@@ -13,8 +13,12 @@ psql:
     pass: postgres
     db: go-sso
 
-
     # база данных для тестов
     migrator:
-      path: "./tests/migrations"
-      table: "migrations_test"
+    path: "./tests/migrations"
+    table: "migrations_test"
+
+vault:
+    addr: ${VAULT_ADDR}
+    token: ${VAULT_TOKEN}
+    timeout: 20s

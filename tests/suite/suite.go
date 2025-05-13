@@ -2,12 +2,13 @@ package suite
 
 import (
 	"context"
-	gossov1 "github.com/passwordhash/protos/gen/go/go-sso"
 	"go-sso/internal/config"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"strconv"
 	"testing"
+
+	gossov1 "github.com/passwordhash/protos/gen/go/go-sso"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Suite struct {
@@ -30,9 +31,7 @@ func New(t *testing.T) (context.Context, *Suite) {
 		cancelCtx()
 	})
 
-	// TODO: избежать deprecated
-	conn, err := grpc.DialContext(
-		ctx,
+	conn, err := grpc.NewClient(
 		grpcAddr(cfg),
 		grpc.WithTransportCredentials(insecure.NewCredentials())) // используем небезопасные соединения для тестов
 	if err != nil {
