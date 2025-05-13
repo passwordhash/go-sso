@@ -26,7 +26,7 @@ type Auth interface {
 		appID int,
 	) (token string, err error)
 
-	SigningKey(ctx context.Context, appName string) (key []byte, err error)
+	SigningKey(ctx context.Context, appName string) (key string, err error)
 }
 
 type serverAPI struct {
@@ -85,8 +85,8 @@ func (s *serverAPI) SigningKey(
 	}
 
 	key, err := s.auth.SigningKey(ctx, req.AppName)
-	if err != nil {
-		panic("handle errors")
+	if serr := s.handleServiceErr(err); serr != nil {
+		return nil, serr
 	}
 
 	return &gossov1.SigningKeyResponse{
@@ -105,6 +105,8 @@ func (s *serverAPI) handleServiceErr(err error) error {
 	case errors.Is(err, auth.ErrInvalidCredentials):
 		return status.Error(codes.Unauthenticated, errors.Unwrap(err).Error())
 	case errors.Is(err, auth.ErrInvalidAppID):
+		return status.Error(codes.NotFound, errors.Unwrap(err).Error())
+	case errors.Is(err, auth.ErrKeyNotFound):
 		return status.Error(codes.NotFound, errors.Unwrap(err).Error())
 	default:
 		return status.Error(codes.Internal, "internal error")

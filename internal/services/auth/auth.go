@@ -38,12 +38,16 @@ type AppProvider interface {
 }
 
 type SigningKeySaver interface {
-	SaveKey(ctx context.Context, appName string, key []byte) error
+	SaveKey(ctx context.Context, appName string, key string) error
 }
 
 type SigningKeyProvider interface {
-	Key(ctx context.Context, appName string) ([]byte, error)
+	Key(ctx context.Context, appName string) (string, error)
 }
+
+var (
+	ErrKeyNotFound = errors.New("key not found")
+)
 
 // Ошибки, которые могут возникнуть при работе с сервисом аутентификации.
 var (
@@ -143,17 +147,33 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email, password string) (str
 }
 
 // SigningKey возвращает ключ подписи для приложения с заданным именем.
-func (a *Auth) SigningKey(ctx context.Context, appName string) ([]byte, error) {
+func (a *Auth) SigningKey(ctx context.Context, appName string) (string, error) {
 	const op = "auth.SigningKey"
 
 	log := a.log.With("op", op, "appName", appName)
 	log.Infow("getting signing key")
 
 	key, err := a.signingKeyProvider.Key(ctx, appName)
-	// TODO: отделить ошибку от хранилища и внутреннюю ошибку
-	if err != nil || key == nil {
-		log.Infow("failed to get signing key", "error", err)
-		return nil, fmt.Errorf("%s: %w", op, err)
+	// TODO: refactor flat
+	if errors.Is(err, ErrKeyNotFound) {
+		log.Infow("key not found, generating new key", "error", err)
+
+		secret, err := jwt.GenerateHS256Secret()
+		if err != nil {
+			log.Errorw("failed to generate signing key", "error", err)
+			return "", fmt.Errorf("%s: %w", op, err)
+		}
+
+		if saveErr := a.signingKeySaver.SaveKey(ctx, appName, secret); saveErr != nil {
+			log.Errorw("failed to save signing key", "error", saveErr)
+			return "", fmt.Errorf("%s: %w", op, saveErr)
+		}
+
+		return secret, nil
+	}
+	if err != nil {
+		log.Errorw("failed to get signing key", "error", err)
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return key, nil
