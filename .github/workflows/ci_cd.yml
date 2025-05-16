@@ -58,6 +58,7 @@ jobs:
                   context: .
                   push: true
                   no-cache: true
+                  dockerfile: prod.Dockerfile
                   tags: |
                       ${{ github.repository }}:latest
                       ${{ github.repository }}:${{ env.VERSION }}

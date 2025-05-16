@@ -17,7 +17,7 @@ import (
 
 const (
 	emptyAppID = 0
-	appID      = 1
+	appName    = "test-app"
 	// appSecret должен совпадать с тем, что используется в tests.migrations
 	appSecret = "test-secret"
 
@@ -42,7 +42,7 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	respLogin, err := st.AuthClient.Login(ctx, &gossov1.LoginRequest{
 		Email:    email,
 		Password: pass,
-		AppId:    appID,
+		AppName:  appName,
 	})
 	require.NoError(t, err)
 
@@ -62,7 +62,7 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	fmt.Println(claims)
 	assert.Equal(t, respReg.GetUserUuid(), claims["uuid"].(string))
 	assert.Equal(t, email, claims["email"].(string))
-	assert.Equal(t, appID, int(claims["app_id"].(float64)))
+	assert.Equal(t, appName, int(claims["app_id"].(float64)))
 
 	const deltaSeconds = 1
 
