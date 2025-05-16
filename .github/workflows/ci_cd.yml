@@ -16,6 +16,9 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+
             - name: Set version
               uses: ./.github/actions/set-version
 
@@ -24,9 +27,6 @@ jobs:
               with:
                   username: ${{ vars.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-            - name: Checkout
-              uses: actions/checkout@v2
 
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v3
