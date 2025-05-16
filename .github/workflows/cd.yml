@@ -1,4 +1,4 @@
-name: CI/CD
+name: CD
 
 # Необходимые переменные на github:
 # vars.DOCKERHUB_USERNAME - логин в dockerhub
