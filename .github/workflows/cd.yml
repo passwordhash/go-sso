@@ -9,6 +9,9 @@ name: CD
 # secrets.SSH_PASSPHRASE - пароль к приватному ключу
 # env.VAULT_ADDR - адрес vault
 # secrets.VAULT_TOKEN - токен доступа к vault
+#
+#
+# TODO: add .env to vault
 
 on:
     push:
@@ -62,7 +65,7 @@ jobs:
     deploy:
         environment: production
 
-        # needs: build #tests ?
+        needs: build #tests ?
 
         runs-on: ubuntu-latest
 
@@ -71,20 +74,20 @@ jobs:
             CONTAINER_NAME: go-sso
             CONTAINER_PORT: 50055
         steps:
-            # - name: Download config artifact
-            #   uses: actions/download-artifact@v4
-            #   with:
-            #       name: config-files
-            #       path: ./config/
-            # - name: Copy config to server
-            #   uses: appleboy/scp-action@v0.1.5
-            #   with:
-            #       host: ${{ vars.SSH_HOST }}
-            #       username: ${{ vars.SSH_USER }}
-            #       key: ${{ secrets.SSH_KEY }}
-            #       passphrase: ${{ secrets.SSH_PASSPHRASE }}
-            #       source: ./config/*
-            #       target: /opt/${{ env.CONTAINER_NAME }}
+            - name: Download config artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: config-files
+                  path: ./config/
+            - name: Copy config to server
+              uses: appleboy/scp-action@v0.1.5
+              with:
+                  host: ${{ vars.SSH_HOST }}
+                  username: ${{ vars.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  passphrase: ${{ secrets.SSH_PASSPHRASE }}
+                  source: ./config/*
+                  target: /opt/${{ env.CONTAINER_NAME }}
 
             - name: Run docker image
               uses: appleboy/ssh-action@v1.2.0
