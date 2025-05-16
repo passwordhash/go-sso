@@ -7,3 +7,9 @@ tasks:
             - go test -v ./tests/...
         env:
             GO111MODULE: on
+    unit-test:
+        desc: Запуск юнит-тестов в директории internal
+        cmds:
+            - go test -v ./internal/...
+        env:
+            GO111MODULE: on

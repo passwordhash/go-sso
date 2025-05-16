@@ -5,10 +5,14 @@ on:
         branches:
             - master
             - develop
+        tags:
+            - "v*.*.*"
     pull_request:
         branches:
             - master
             - develop
+        tags:
+            - "v*.*.*"
 
 jobs:
     test:
@@ -34,4 +38,4 @@ jobs:
                   go mod download
 
             - name: Run tests
-              run: task func-test
+              run: task unit-test
