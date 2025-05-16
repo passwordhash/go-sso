@@ -40,7 +40,8 @@ jobs:
                   context: .
                   push: true
                   no-cache: true
-                  dockerfile: prod.Dockerfile
+                  file: ./prod.Dockerfile
+                  platforms: linux/amd64, linux/arm64
                   tags: |
                       ${{ github.repository }}:latest
                       ${{ github.repository }}:${{ env.VERSION }}
