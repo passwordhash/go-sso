@@ -1,5 +1,9 @@
 name: CI/CD
 
+# Необходимые переменные на github:
+# vars.DOCKERHUB_USERNAME - логин в dockerhub
+# secrets.DOCKERHUB_TOKEN - токен доступа к dockerhub
+
 on:
     push:
         branches:
@@ -18,6 +22,8 @@ on:
 
 jobs:
     build:
+        environment: production
+
         runs-on: ubuntu-latest
 
         # Запускать только на master или при ручном запуске
