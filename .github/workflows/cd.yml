@@ -7,6 +7,8 @@ name: CD
 # vars.SSH_USER - пользователь для ssh
 # secrets.SSH_KEY - приватный ключ для ssh
 # secrets.SSH_PASSPHRASE - пароль к приватному ключу
+# env.VAULT_ADDR - адрес vault
+# secrets.VAULT_TOKEN - токен доступа к vault
 
 on:
     push:
@@ -93,6 +95,7 @@ jobs:
                   passphrase: ${{ secrets.SSH_PASSPHRASE }}
                   script: |
                       export VAULT_ADDR=${{ env.VAULT_ADDR }}
+                      export VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}
                       vault kv get -format=json -mount=kv ${{ env.CONTAINER_NAME }} | \
                         jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' > .env
 
