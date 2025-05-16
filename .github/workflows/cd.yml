@@ -74,7 +74,6 @@ jobs:
             #   with:
             #       name: config-files
             #       path: ./config/
-
             - name: Copy config to server
               uses: appleboy/scp-action@v0.1.5
               with:
