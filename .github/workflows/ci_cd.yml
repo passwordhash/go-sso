@@ -6,19 +6,8 @@ name: CI/CD
 
 on:
     push:
-        branches:
-            - master
-            - develop
-    pull_request:
-        branches:
-            - master
-            - develop
-    workflow_dispatch:
-        inputs:
-            VERSION:
-                description: "Docker image version tag (e.g. v1.0.0)"
-                required: true
-                default: "latest"
+        tags:
+            - "v*.*.*" # любые теги вида v1.0.0
 
 jobs:
     build:
@@ -26,17 +15,10 @@ jobs:
 
         runs-on: ubuntu-latest
 
-        # Запускать только на master или при ручном запуске
-        if: |
-            github.event_name == 'workflow_dispatch' ||
-            (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
-            (github.event_name == 'pull_request' && github.ref == 'refs/heads/master')
-
-        env:
-            # Использовать вручную введённую версию, либо fallback на sha
-            VERSION: ${{ github.event.inputs.VERSION != '' && github.event.inputs.VERSION || github.sha }}
-
         steps:
+            - name: Set version
+              uses: ./.github/actions/set-version
+
             - name: Login to Docker Hub
               uses: docker/login-action@v3
               with:
