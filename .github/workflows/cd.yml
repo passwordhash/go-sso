@@ -3,6 +3,10 @@ name: CD
 # Необходимые переменные на github:
 # vars.DOCKERHUB_USERNAME - логин в dockerhub
 # secrets.DOCKERHUB_TOKEN - токен доступа к dockerhub
+# vars.SSH_HOST - хост для ssh
+# vars.SSH_USER - пользователь для ssh
+# secrets.SSH_KEY - приватный ключ для ssh
+# secrets.SSH_PASSPHRASE - пароль к приватному ключу
 
 on:
     push:
@@ -45,3 +49,54 @@ jobs:
                   tags: |
                       ${{ github.repository }}:latest
                       ${{ github.repository }}:${{ env.VERSION }}
+
+            - name: Upload config as artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: config-files
+                  path: ./config/
+
+    deploy:
+        needs: build #tests ?
+        runs-on: ubuntu-latest
+        env:
+            VAULT_ADDR: http://vault.passwordhash.tech
+            CONTAINER_NAME: go-sso
+            CONTAINER_PORT: 50055
+        steps:
+            - name: Download config artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: config-files
+                  path: ./config/
+
+            - name: Copy config to server
+              uses: appleboy/scp-action@v0.1.5
+              with:
+                  host: ${{ vars.SSH_HOST }}
+                  username: ${{ vars.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  passphrase: ${{ secrets.SSH_PASSPHRASE }}
+                  source: ./config/*
+                  target: /opt/${{ env.CONTAINER_NAME }}
+
+            - name: Run docker image
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ vars.SSH_HOST }}
+                  username: ${{ vars.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  passphrase: ${{ secrets.SSH_PASSPHRASE }}
+                  script: |
+                      export VAULT_ADDR=${{ env.VAULT_ADDR }}
+                      vault kv get -format=json -mount=kv ${{ env.CONTAINER_NAME }} | \
+                        jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' > .env
+
+                      docker pull ${{ github.repository }}:latest
+                      docker stop ${{ env.CONTAINER_NAME }} || true
+                      docker rm ${{ env.CONTAINER_NAME }} -f || true
+                      docker run -d  \
+                        --env-file .env \
+                        -p 50055:${{ env.CONTAINER_PORT }} \
+                        --name ${{ env.CONTAINER_NAME }} \
+                        ${{ github.repository }}:latest
