@@ -1,0 +1,57 @@
+name: CI/CD
+
+on:
+    push:
+        branches:
+            - master
+            - develop
+    pull_request:
+        branches:
+            - master
+            - develop
+    workflow_dispatch:
+        inputs:
+            VERSION:
+                description: "Docker image version tag (e.g. v1.0.0)"
+                required: true
+                default: "latest"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        # Запускать только на master или при ручном запуске
+        if: |
+            github.event_name == 'workflow_dispatch' ||
+            (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+            (github.event_name == 'pull_request' && github.ref == 'refs/heads/master')
+
+        env:
+            # Использовать вручную введённую версию, либо fallback на sha
+            VERSION: ${{ github.event.inputs.VERSION != '' && github.event.inputs.VERSION || github.sha }}
+
+        steps:
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ vars.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build and push Docker image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  push: true
+                  no-cache: true
+                  tags: |
+                      ${{ github.repository }}:latest
+                      ${{ github.repository }}:${{ env.VERSION }}
