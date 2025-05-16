@@ -13,7 +13,7 @@
 - **Тестирование**: функциональные тесты gRPC-сервиса.
 
 ## Репозиторий proto
-Схема gRPC и сообщения описаны в репозитории:  
+Схема gRPC и сообщения описаны в репозитории:
 https://github.com/passwordhash/protos (модуль `github.com/passwordhash/protos/gen/go/go-sso`)
 
 ## Установка и запуск
@@ -36,7 +36,7 @@ https://github.com/passwordhash/protos (модуль `github.com/passwordhash/pr
 3. В контейнере `app` будет запущен gRPC-сервер на порту, заданном в `GRPC_PORT`.
 
 ### Конфигурация
-Файл конфигурации по умолчанию лежит в `config/local.yml`.  
+Файл конфигурации по умолчанию лежит в `config/local.yml`.
 Основные параметры:
 - `env` — среда исполнения (`local`, `dev`, `prod`).
 - `grpc.host`, `grpc.port`, `grpc.timeout` — настройки gRPC-сервера.
@@ -46,7 +46,7 @@ https://github.com/passwordhash/protos (модуль `github.com/passwordhash/pr
 Путь до файла в контейнере передаётся через переменную `CONFIG_PATH`.
 
 ### Миграции базы данных
-Миграции хранятся в `migrations/`.  
+Миграции хранятся в `migrations/`.
 Применение миграций вручную:
 ```bash
 go run cmd/migrator/main.go -config=config/local.yml
@@ -56,19 +56,19 @@ go run cmd/migrator/main.go -config=config/local.yml
 ## API gRPC
 
 ### Сервисы
-- `Register(RegisterRequest) -> RegisterResponse`  
-  Регистрирует нового пользователя.  
-  Параметры: `email`, `password`.  
+- `Register(RegisterRequest) -> RegisterResponse`
+  Регистрирует нового пользователя.
+  Параметры: `email`, `password`.
   Возвращает: `user_uuid`.
 
-- `Login(LoginRequest) -> LoginResponse`  
-  Аутентификация пользователя и выдача JWT.  
-  Параметры: `email`, `password`, `app_id`.  
+- `Login(LoginRequest) -> LoginResponse`
+  Аутентификация пользователя и выдача JWT.
+  Параметры: `email`, `password`, `app_id`.
   Возвращает: `token`.
 
-- `SigningKey(SigningKeyRequest) -> SigningKeyResponse`  
-  Получение/генерация секретного ключа для приложения.  
-  Параметр: `app_name`.  
+- `SigningKey(SigningKeyRequest) -> SigningKeyResponse`
+  Получение/генерация секретного ключа для приложения.
+  Параметр: `app_name`.
   Возвращает: `signing_key`.
 
 ### Пример запроса gRPC (Go-клиент)
@@ -86,31 +86,3 @@ go test -v ./tests/...
 ```
 - Перед тестами используется свой набор миграций `tests/migrations`.
 - Конфиг для тестов: `config/test.yml`.
-
-## Полезные команды
-
-- Сборка и запуск приложения локально:
-  ```bash
-  go run cmd/sso/main.go -config=config/local.yml
-  ```
-- Запуск мигратора:
-  ```bash
-  go run cmd/migrator/main.go -config=config/local.yml
-  ```
-- Выполнение функциональных тестов:
-  ```bash
-  go test ./tests/...
-  ```
-- Генерация JWT-секрета вручную:
-  ```go
-  secret, _ := jwt.GenerateHS256Secret()
-  ```
-
-## Схема базы данных
-- Таблица `users`:
-  - `uuid UUID PK`, `email TEXT UNIQUE`, `pass_hash BYTEA`, `is_admin BOOLEAN`.
-- Таблица `apps`:
-  - `id SERIAL PK`, `name TEXT UNIQUE`, `secret TEXT UNIQUE`.
-
-## Лицензия
-MIT License.
