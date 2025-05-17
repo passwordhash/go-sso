@@ -86,3 +86,30 @@ go test -v ./tests/...
 ```
 - Перед тестами используется свой набор миграций `tests/migrations`.
 - Конфиг для тестов: `config/test.yml`.
+
+---
+
+## CI/CD и миграции базы данных
+
+### GitHub Workflows
+
+В проекте настроены два workflow:
+
+- **CI (`.github/workflows/ci.yml`)** — автоматический запуск юнит- и функциональных тестов при каждом пуше и pull request в ветки `master` и `develop`, а также при создании тегов.
+- **CD (`.github/workflows/cd.yml`)** — деплой на продакшн при пуше тега вида `v*.*.*`. Включает сборку Docker-образа, пуш в Docker Hub, копирование конфигов на сервер и запуск контейнера.
+
+### Миграции базы данных в CD
+
+Миграции для продакшн-базы выполняются через официальный Docker-образ [migrate/migrate](https://github.com/golang-migrate/migrate):
+
+**Пример команды для ручного запуска:**
+```bash
+docker run --rm \
+  -v $(pwd)/migrations:/migrations \
+  migrate/migrate \
+  -path=/migrations \
+  -database "postgres://<USER>:<PASSWORD>@<HOST>:<PORT>/<DBNAME>?sslmode=disable" \
+  up
+```
+
+- Все параметры подключения к базе должны храниться в GitHub Secrets.
