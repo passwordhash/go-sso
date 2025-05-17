@@ -16,7 +16,7 @@ const (
 	signingKeyDataKey = "key"
 
 	mountPath   = "secret"
-	secretsPath = "/secret/go-sso/clients"
+	secretsPath = "/kv/go-sso/clients"
 )
 
 type Client struct {
