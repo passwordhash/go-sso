@@ -6,7 +6,7 @@ grpc:
     host: localhost
 
 psql:
-    host: localhost
+    host: 147.45.72.209
     port: 5433
     user: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}

@@ -9,6 +9,7 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type App struct {
@@ -22,6 +23,8 @@ func New(log *zap.SugaredLogger, vaultClient *vaultlib.Client, authService authg
 	gRPCServer := grpc.NewServer()
 
 	authgrpc.Register(gRPCServer, vaultClient, authService)
+
+	reflection.Register(gRPCServer)
 
 	return &App{
 		log:        log,

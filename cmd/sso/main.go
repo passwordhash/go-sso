@@ -17,7 +17,7 @@ func main() {
 	log := config.SetupLogger(cfg.Env)
 
 	log.Info("starting SSO application...")
-	log.Debugw("with ocnfig", "config", cfg)
+	log.Debugw("with config", "config", cfg)
 
 	application := app.New(ctx, log, cfg)
 

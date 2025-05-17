@@ -73,7 +73,7 @@ jobs:
             VAULT_ADDR: http://vault.passwordhash.tech
             CONTAINER_NAME: go-sso
             CONTAINER_PORT: 50055
-            HOST_CONFIG_PATH: /opt/go-sso/
+            HOST_CONFIG_PATH: /home/yaroslav/.config/go-sso/
 
         steps:
             - name: Download config artifact
@@ -109,7 +109,7 @@ jobs:
                       docker rm ${{ env.CONTAINER_NAME }} -f || true
                       docker run -d  \
                         --env-file .env \
-                        -v ${{ env.HOST_CONFIG_PATH }}:/app/config \
+                        -v ${{ env.HOST_CONFIG_PATH }}/config/:/app/config \
                         -p 50055:${{ env.CONTAINER_PORT }} \
                         --name ${{ env.CONTAINER_NAME }} \
                         ${{ github.repository }}:latest
