@@ -9,9 +9,6 @@ name: CD
 # secrets.SSH_PASSPHRASE - пароль к приватному ключу
 # env.VAULT_ADDR - адрес vault
 # secrets.VAULT_TOKEN - токен доступа к vault
-#
-#
-# TODO: add .env to vault
 
 on:
     push:
