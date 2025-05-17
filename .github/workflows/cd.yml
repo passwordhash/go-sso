@@ -73,6 +73,7 @@ jobs:
             VAULT_ADDR: http://vault.passwordhash.tech
             CONTAINER_NAME: go-sso
             CONTAINER_PORT: 50055
+            HOST_CONFIG_PATH: ~/.config/go-sso
         steps:
             - name: Download config artifact
               uses: actions/download-artifact@v4
@@ -87,7 +88,7 @@ jobs:
                   key: ${{ secrets.SSH_KEY }}
                   passphrase: ${{ secrets.SSH_PASSPHRASE }}
                   source: ./config/*
-                  target: /opt/${{ env.CONTAINER_NAME }}
+                  target: ${{ env.HOST_CONFIG_PATH }}
 
             - name: Run docker image
               uses: appleboy/ssh-action@v1.2.0

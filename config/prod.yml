@@ -1,0 +1,18 @@
+env: "prod"
+token_ttl: 20m
+grpc:
+    port: 50055
+    timeout: 30s
+    host: localhost
+
+psql:
+    host: localhost
+    port: 5432
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    db: ${POSTGRES_DB}
+
+vault:
+    addr: ${VAULT_ADDR}
+    token: ${VAULT_TOKEN}
+    timeout: 20s
