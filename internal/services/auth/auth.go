@@ -102,11 +102,27 @@ func (a *Auth) Login(ctx context.Context, email, password string, appName string
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
-	log.Infow("user logged in", "userID", user.UUID, "appNzme", appName)
+	log.Infow("user logged in", "userID", user.UUID)
 
 	secret, err := a.signingKeyProvider.Key(ctx, appName)
-	if err != nil {
+	if errors.Is(err, ErrKeyNotFound) {
+		log.Infow("key not found, generating new key", "error", err)
+
+		secret, err = jwt.GenerateHS256Secret()
+		if err != nil {
+			log.Errorw("failed to generate signing key", "error", err)
+
+			return "", fmt.Errorf("%s: %w", op, err)
+		}
+
+		if saveErr := a.signingKeySaver.SaveKey(ctx, appName, secret); saveErr != nil {
+			log.Errorw("failed to save signing key", "error", saveErr)
+
+			return "", fmt.Errorf("%s: %w", op, saveErr)
+		}
+	} else if err != nil {
 		log.Errorw("failed to get signing key", "error", err)
+
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
