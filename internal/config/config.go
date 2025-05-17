@@ -69,7 +69,11 @@ func MustLoad() *Config {
 }
 
 func MustLoadByPath(configPath string) *Config {
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+	_, err := os.Stat(configPath)
+	if err != nil && os.IsPermission(err) {
+		panic("no permission to config file: " + configPath)
+	}
+	if err != nil && os.IsNotExist(err) {
 		panic("config file does not exist: " + configPath)
 	}
 
