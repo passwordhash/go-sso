@@ -12,6 +12,9 @@ psql:
     password: ${POSTGRES_PASSWORD}
     db: ${POSTGRES_DB}
 
+    migrator:
+        path: "./migrations"
+
 vault:
     addr: ${VAULT_ADDR}
     token: ${VAULT_TOKEN}

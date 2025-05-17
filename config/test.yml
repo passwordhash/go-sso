@@ -8,15 +8,14 @@ grpc:
 psql:
     host: localhost
     port: 5434
-
     user: sso
     pass: postgres
     db: go-sso
 
     # база данных для тестов
     migrator:
-    path: "./tests/migrations"
-    table: "migrations_test"
+        path: "./tests/migrations"
+        table: "migrations_test"
 
 vault:
     addr: ${VAULT_ADDR}

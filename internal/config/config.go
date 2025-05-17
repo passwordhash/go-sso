@@ -33,7 +33,7 @@ type PSQLConfig struct {
 	Port     int             `yaml:"port" env:"POSTGRES_PORT" env-required:"true"`
 	Host     string          `yaml:"host" env:"POSTGRES_HOST" env-required:"true"`
 	User     string          `yaml:"user" env:"POSTGRES_USER" env-required:"true"`
-	Pass     string          `yaml:"pass" env:"POSTGRES_PASSWORD" env-required:"true"`
+	Pass     string          `yaml:"password" env:"POSTGRES_PASSWORD" env-required:"true"`
 	DB       string          `yaml:"db" env:"POSTGRES_DB" env-required:"true"`
 	Migrator *MigratorConfig `yaml:"migrator" `
 }
@@ -46,7 +46,7 @@ type VaultConfig struct {
 
 type MigratorConfig struct {
 	Path  string `yaml:"path" env:"MIGRATIONS_PATH" env-required:"true"`
-	Table string `yaml:"table" env:"MIGRATIONS_TABLE" env-required:"true"`
+	Table string `yaml:"table" env:"MIGRATIONS_TABLE" env-default:"migrations"`
 }
 
 func (c *PSQLConfig) DSN() string {
