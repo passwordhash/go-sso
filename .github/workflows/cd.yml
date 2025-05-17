@@ -81,6 +81,7 @@ jobs:
               with:
                   name: config-files
                   path: ./config/
+
             - name: Copy config to server
               uses: appleboy/scp-action@v0.1.5
               with:
@@ -113,3 +114,49 @@ jobs:
                         -p 50055:${{ env.CONTAINER_PORT }} \
                         --name ${{ env.CONTAINER_NAME }} \
                         ${{ github.repository }}:latest
+
+            - name: Clean up
+              run: |
+                  rm -f .env
+                  rm -rf ./config/*
+
+    migrate:
+        environment: production
+
+        needs: deploy
+
+        runs-on: ubuntu-latest
+
+        env:
+            VAULT_ADDR: http://vault.passwordhash.tech
+            CONTAINER_NAME: go-sso
+            CONTAINER_PORT: 50055
+            HOST_CONFIG_PATH: /home/yaroslav/.config/go-sso/
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            - name: Install dependencies
+              run: go mod tidy
+
+            - name: Install Vault CLI
+              run: |
+                  curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+                  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+                  sudo apt update && sudo apt install vault -y
+
+            - name: Export secrets from Vault to .env
+              run: |
+                  export VAULT_ADDR=${{ env.VAULT_ADDR }}
+                  export VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}
+
+                  vault kv get -format=json -mount=kv ${{ env.CONTAINER_NAME }} | \
+                    jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' > .env
+
+            - name: Export .env vars into shell and run migration
+              run: |
+                  set -a
+                  source .env
+                  set +a
+                  go run ./cmd/migrator/main.go -config ./config/prod.yml
