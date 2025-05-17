@@ -14,9 +14,8 @@ import (
 
 const (
 	signingKeyDataKey = "key"
-
-	mountPath   = "secret"
-	secretsPath = "/kv/go-sso/clients"
+	mountPath         = "kv"
+	secretsPath       = "go-sso/clients"
 )
 
 type Client struct {
