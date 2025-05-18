@@ -109,6 +109,7 @@ jobs:
                         --env-file .env \
                         -v ${{ env.HOST_CONFIG_PATH }}/config/:/app/config \
                         -p 50055:${{ env.CONTAINER_PORT }} \
+                        --network go-network \
                         --name ${{ env.CONTAINER_NAME }} \
                         ${{ github.repository }}:latest
 
