@@ -6,7 +6,7 @@ services:
         build:
             context: ../
             dockerfile: ./docker/Dockerfile
-        env_file: .env
+        env_file: .env.dev
         networks:
             - shared-net
         ports:
@@ -25,7 +25,7 @@ services:
         ports:
             - "${POSTGRES_OUT_PORT}:5432"
         env_file:
-            - .env
+            - .env.dev
         networks:
             - shared-net
         environment:
