@@ -4,8 +4,8 @@ services:
     app:
         container_name: go-sso-app
         build:
-            context: .
-            dockerfile: dev.Dockerfile
+            context: ../
+            dockerfile: ./docker/Dockerfile
         env_file: .env
         networks:
             - shared-net
