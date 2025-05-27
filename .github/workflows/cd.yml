@@ -12,8 +12,8 @@ name: CD
 
 on:
     push:
-        tags:
-            - "v*.*.*" # любые теги вида v1.0.0
+        # tags:
+        # - "v*.*.*" # любые теги вида v1.0.0
 
 jobs:
     build:
@@ -46,7 +46,7 @@ jobs:
                   context: .
                   push: true
                   no-cache: true
-                  file: ./prod.Dockerfile
+                  file: ./docker/Dockerfile
                   platforms: linux/amd64
                   # platforms: linux/amd64, linux/arm64
                   tags: |
@@ -70,7 +70,7 @@ jobs:
             VAULT_ADDR: http://vault.passwordhash.tech
             CONTAINER_NAME: go-sso
             CONTAINER_PORT: 50055
-            HOST_CONFIG_PATH: /home/yaroslav/.config/go-sso/
+            HOST_CONFIG_PATH: /home/yaroslav/.config/go-sso/config
 
         steps:
             - name: Download config artifact
@@ -107,16 +107,42 @@ jobs:
                       docker rm ${{ env.CONTAINER_NAME }} -f || true
                       docker run -d  \
                         --env-file .env \
-                        -v ${{ env.HOST_CONFIG_PATH }}/config/:/app/config \
+                        -v ${{ env.HOST_CONFIG_PATH }}/:/app/config \
                         -p 50055:${{ env.CONTAINER_PORT }} \
-                        --network go-network \
                         --name ${{ env.CONTAINER_NAME }} \
                         ${{ github.repository }}:latest
 
-            - name: Clean up
-              run: |
-                  rm -f .env
-                  rm -rf ./config/*
+    deploy-dev:
+        environment: production
+
+        # needs: build #tests ?
+
+        runs-on: ubuntu-latest
+
+        env:
+            CONTAINER_NAME: go-sso
+            CONTAINER_PORT: 50055
+            GO_SSO_REPO: https://github.com/passwordhash/go-sso
+
+        steps:
+            - name: Run compose up
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ vars.SSH_HOST }}
+                  username: ${{ vars.SSH_USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  passphrase: ${{ secrets.SSH_PASSPHRASE }}
+                  script: |
+                      rm -rf go-sso
+                      git clone ${{ env.GO_SSO_REPO }} go-sso
+                      cd go-sso
+
+                      docker compose \
+                            --env-file docker/.env.dev \
+                            -f docker/docker-compose.dev.yml \
+                            --project-name go-sso_dev \
+                            up -d
+                            # -v ${{ env.HOST_CONFIG_PATH }}/:/app/config
 
     migrate:
         environment: production

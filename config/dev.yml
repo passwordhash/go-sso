@@ -1,0 +1,18 @@
+env: "dev"
+token_ttl: 2400h
+grpc:
+    host: localhost
+    port: 55055
+    timeout: 10h
+
+psql:
+    host: go-sso-db_dev
+    port: 5432
+    user: sso
+    pass: postgres
+    db: go-sso
+
+vault:
+    addr: ${VAULT_ADDR}
+    token: ${VAULT_TOKEN}
+    timeout: 20s
