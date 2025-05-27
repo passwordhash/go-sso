@@ -59,37 +59,20 @@ jobs:
                   name: config-files
                   path: ./config/
 
-    deploy:
+    deploy-dev:
         environment: production
 
-        needs: build #tests ?
+        # needs: build #tests ?
 
         runs-on: ubuntu-latest
 
         env:
-            VAULT_ADDR: http://vault.passwordhash.tech
             CONTAINER_NAME: go-sso
             CONTAINER_PORT: 50055
-            HOST_CONFIG_PATH: /home/yaroslav/.config/go-sso/
+            GO_SSO_REPO: https://github.com/passwordhash/go-sso
 
         steps:
-            - name: Download config artifact
-              uses: actions/download-artifact@v4
-              with:
-                  name: config-files
-                  path: ./config/
-
-            - name: Copy config to server
-              uses: appleboy/scp-action@v0.1.5
-              with:
-                  host: ${{ vars.SSH_HOST }}
-                  username: ${{ vars.SSH_USER }}
-                  key: ${{ secrets.SSH_KEY }}
-                  passphrase: ${{ secrets.SSH_PASSPHRASE }}
-                  source: ./config/*
-                  target: ${{ env.HOST_CONFIG_PATH }}
-
-            - name: Run docker image
+            - name: Run compose up
               uses: appleboy/ssh-action@v1.2.0
               with:
                   host: ${{ vars.SSH_HOST }}
@@ -97,26 +80,14 @@ jobs:
                   key: ${{ secrets.SSH_KEY }}
                   passphrase: ${{ secrets.SSH_PASSPHRASE }}
                   script: |
-                      export VAULT_ADDR=${{ env.VAULT_ADDR }}
-                      export VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}
-                      vault kv get -format=json -mount=kv ${{ env.CONTAINER_NAME }} | \
-                        jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' > .env
+                      git clone ${{ env.GO_SSO_REPO }} go-sso
+                      cd go-sso
 
-                      docker pull ${{ github.repository }}:latest
-                      docker stop ${{ env.CONTAINER_NAME }} || true
-                      docker rm ${{ env.CONTAINER_NAME }} -f || true
-                      docker run -d  \
-                        --env-file .env \
-                        -v ${{ env.HOST_CONFIG_PATH }}/config/:/app/config \
-                        -p 50055:${{ env.CONTAINER_PORT }} \
-                        --network go-network \
-                        --name ${{ env.CONTAINER_NAME }} \
-                        ${{ github.repository }}:latest
-
-            - name: Clean up
-              run: |
-                  rm -f .env
-                  rm -rf ./config/*
+                      docker compose \
+                            --env-file docker/.env.dev \
+                            -f docker/docker-compose.dev.yml \
+                            --project-name go-sso_dev \
+                            up -d
 
     deploy-dev:
         environment: production
