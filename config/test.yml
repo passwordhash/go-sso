@@ -1,5 +1,5 @@
-env: "local" # dev, prod
-token_ttl: 1h
+env: "dev"
+token_ttl: 100d
 grpc:
     host: localhost
     port: 50055
