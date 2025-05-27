@@ -109,7 +109,6 @@ jobs:
                         --env-file .env \
                         -v ${{ env.HOST_CONFIG_PATH }}/config/:/app/config \
                         -p 50055:${{ env.CONTAINER_PORT }} \
-                        --network go-network \
                         --name ${{ env.CONTAINER_NAME }} \
                         ${{ github.repository }}:latest
 
@@ -139,6 +138,7 @@ jobs:
                   key: ${{ secrets.SSH_KEY }}
                   passphrase: ${{ secrets.SSH_PASSPHRASE }}
                   script: |
+                      rm -rf go-sso
                       git clone ${{ env.GO_SSO_REPO }} go-sso
                       cd go-sso
 
