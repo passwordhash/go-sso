@@ -2,7 +2,7 @@ env: "dev"
 token_ttl: 2400h
 grpc:
     host: localhost
-    port: 55055
+    port: ${GRPC_PORT:50051}
     timeout: 10h
 
 psql:

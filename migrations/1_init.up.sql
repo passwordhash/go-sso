@@ -1,4 +1,5 @@
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- Выполнить только от администратора
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS users (
 	uuid UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
 	email TEXT NOT NULL UNIQUE,

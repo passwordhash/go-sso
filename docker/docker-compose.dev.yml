@@ -22,8 +22,8 @@ services:
         container_name: go-sso-db_dev
         image: postgres:15
         restart: always
-        # ports:
-        # - "${POSTGRES_OUT_PORT}:5432"
+        ports:
+            - "${POSTGRES_OUT_PORT}:5432"
         env_file:
             - .env.dev
         networks:
@@ -33,24 +33,22 @@ services:
             POSTGRES_PORT: 5432
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-        volumes:
-            - pgdata:/var/lib/postgresql/data
 
     migrate:
         container_name: go-sso-migrate_dev
         image: migrate/migrate
         networks:
             - shared-net
+        depends_on:
+            - postgres
+        volumes:
+            - ../migrations:/migrations
         entrypoint:
             [
                 "sh",
                 "-c",
-                "sleep 5 && migrate -path /migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@go-sso-db:5432/${POSTGRES_DB}?sslmode=disable up",
+                "sleep 5 && migrate -path /migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@go-sso-db_dev:5432/${POSTGRES_DB}?sslmode=disable up",
             ]
-        depends_on:
-            - postgres
-        volumes:
-            - ./migrations:/migrations
 
     vault:
         container_name: go-sso-vault_dev
@@ -67,9 +65,6 @@ services:
         networks:
             - shared-net
         command: server -dev
-
-volumes:
-    pgdata:
 
 networks:
     shared-net:
