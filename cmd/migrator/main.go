@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"go-sso/internal/config"
+	"os"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -13,6 +14,8 @@ import (
 
 func main() {
 	cfg := config.MustLoad()
+
+	fmt.Println("USER:", os.Getenv("POSTGRES_USER"))
 
 	fmt.Println(cfg)
 

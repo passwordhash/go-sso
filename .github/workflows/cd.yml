@@ -25,8 +25,9 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
-            - name: Set version
-              uses: ./.github/actions/set-version
+            # TEMP
+            # - name: Set version
+            # uses: ./.github/actions/set-version
 
             - name: Login to Docker Hub
               uses: docker/login-action@v3
@@ -49,9 +50,10 @@ jobs:
                   file: ./docker/Dockerfile
                   platforms: linux/amd64
                   # platforms: linux/amd64, linux/arm64
+                  # TEMP
+                  # ${{ github.repository }}:${{ env.VERSION }}
                   tags: |
                       ${{ github.repository }}:latest
-                      ${{ github.repository }}:${{ env.VERSION }}
 
             - name: Upload config as artifact
               uses: actions/upload-artifact@v4
@@ -180,6 +182,7 @@ jobs:
 
             - name: Export .env vars into shell and run migration
               run: |
+                  cat .env
                   set -a
                   source .env
                   set +a
