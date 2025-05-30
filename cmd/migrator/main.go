@@ -14,8 +14,6 @@ import (
 func main() {
 	cfg := config.MustLoad()
 
-	fmt.Println(cfg)
-
 	if cfg.PSQL.Migrator == nil {
 		panic("migrator config is not set")
 	}

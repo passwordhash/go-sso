@@ -1,5 +1,5 @@
 env: "dev"
-token_ttl: 100d
+token_ttl: 100h
 grpc:
     host: localhost
     port: 50055
@@ -9,7 +9,7 @@ psql:
     host: localhost
     port: 5434
     user: sso
-    pass: postgres
+    password: postgres
     db: go-sso
 
     # база данных для тестов
@@ -18,6 +18,6 @@ psql:
         table: "migrations_test"
 
 vault:
-    addr: ${VAULT_ADDR}
-    token: ${VAULT_TOKEN}
+    addr: http://go-sso-vault:8200
+    token: root
     timeout: 20s
