@@ -2,11 +2,10 @@ version: "3.9"
 
 services:
     app:
-        container_name: go-sso-app
         build:
             context: ../
             dockerfile: ./docker/Dockerfile
-        env_file: .env
+        env_file: .env.local
         networks:
             - shared-net
         ports:
@@ -16,16 +15,14 @@ services:
         depends_on:
             - postgres
         volumes:
-            - .:/app
+            - ../config/:/app/config
 
     postgres:
         image: postgres:15
-        container_name: go-sso-db
         restart: always
         ports:
             - "${POSTGRES_OUT_PORT}:5432"
-        env_file:
-            - .env
+        env_file: .env.local
         networks:
             - shared-net
         environment:
@@ -38,7 +35,6 @@ services:
 
     migrate:
         image: migrate/migrate
-        container_name: go-sso-migrate
         networks:
             - shared-net
         entrypoint:
@@ -54,7 +50,6 @@ services:
 
     vault:
         image: hashicorp/vault:1.15
-        container_name: go-sso-vault
         restart: unless-stopped
         cap_add:
             - IPC_LOCK

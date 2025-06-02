@@ -2,9 +2,9 @@
 
 *.out
 *.env*
-.env
 !.env.example
 !.env.dev
+!.env.local
 *.db
 
 .zed/
