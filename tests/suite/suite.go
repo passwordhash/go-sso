@@ -22,7 +22,8 @@ func New(t *testing.T) (context.Context, *Suite) {
 	t.Parallel()
 
 	// TODO: для тестов в CI/CD нужно использовать переменные окружения
-	cfg := config.MustLoadByPath("../config/test.yml")
+	// cfg := config.MustLoadByPath("../config/test.yml")
+	cfg := config.MustLoad()
 
 	ctx, cancelCtx := context.WithTimeout(context.Background(), cfg.GRPC.Timeout)
 
