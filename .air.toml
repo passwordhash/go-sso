@@ -1,0 +1,14 @@
+# Конфиг для Air (live reload)
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o go-sso.app cmd/sso/main.go"
+  bin = "go-sso.app"
+  include_ext = ["go", "tpl", "tmpl", "yaml", "yml"]
+  exclude_dir = ["vendor", "tmp", "tests"]
+  exclude_file = []
+  follow_symlink = true
+
+[log]
+  time = true

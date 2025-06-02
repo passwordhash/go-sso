@@ -102,6 +102,11 @@ jobs:
                       vault kv get -format=json -mount=kv ${{ env.CONTAINER_NAME }} | \
                         jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' > .env
 
+                      if [ ! -s .env ]; then
+                          echo ".env is empty or does not exist!"
+                          exit 1
+                      fi
+
                       docker pull ${{ github.repository }}:latest
                       docker stop ${{ env.CONTAINER_NAME }} || true
                       docker rm ${{ env.CONTAINER_NAME }} -f || true
