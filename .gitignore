@@ -1,5 +1,8 @@
 .idea
 
+tmp/
+*.app
+
 *.out
 *.env*
 !.env.example

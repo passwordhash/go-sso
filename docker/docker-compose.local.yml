@@ -4,7 +4,7 @@ services:
     app:
         build:
             context: ../
-            dockerfile: ./docker/Dockerfile
+            dockerfile: ./docker/local.Dockerfile
         env_file: .env.local
         networks:
             - shared-net
@@ -15,7 +15,8 @@ services:
         depends_on:
             - postgres
         volumes:
-            - ../config/:/app/config
+            # - ../config/:/app/config
+            - ../:/app
 
     postgres:
         image: postgres:15

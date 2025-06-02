@@ -8,3 +8,4 @@ tmp/
 *.out
 *.swp
 
+.DS_Store

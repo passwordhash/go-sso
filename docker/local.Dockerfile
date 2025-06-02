@@ -1,22 +1,13 @@
-FROM golang:1.24.1-alpine AS base
+FROM golang:1.24.1-alpine
 
 WORKDIR /app
 
-# ===========================
-FROM base AS build
+RUN go install github.com/air-verse/air@latest
 
-COPY --link go.mod go.sum ./
+COPY go.mod go.sum ./
 
 RUN go mod download
 
 COPY . .
 
-RUN go build -o go-sso.app cmd/sso/main.go
-
-# ===========================
-FROM base
-
-COPY --from=build /app/go-sso.app /app/go-sso.app
-COPY --from=base  /app/config/local.yml /app/config/local.yml
-
-CMD ["./go-sso.app"]
+CMD ["air", "-c", ".air.toml"]

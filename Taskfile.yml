@@ -2,14 +2,14 @@ version: "3"
 
 tasks:
     local-up:
-        desc: Запуск локального сервера в режиме разработки
+        desc: Запуск локального сервера в режиме разработки c live reload
         cmds:
             - |
                 docker-compose \
                    --env-file docker/.env.local \
                   -f docker/docker-compose.local.yml \
                   -p go-sso \
-                  up -d
+                  up -d --build
     func-test:
         desc: Запуск функциональных тестов в директории tests
         cmds:
