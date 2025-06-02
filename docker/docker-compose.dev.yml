@@ -68,4 +68,4 @@ services:
 
 networks:
     shared-net:
-        external: true
+        # external: true
