@@ -16,11 +16,12 @@ const (
 )
 
 type Config struct {
-	Env      string        `yaml:"env" env:"ENV" env-required:"true"`
-	TokenTTL time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" env-required:"true"`
-	GRPC     GRPCConfig    `yaml:"grpc" env-required:"true"`
-	Vault    VaultConfig   `yaml:"vault" env-required:"true"`
-	PSQL     PSQLConfig    `yaml:"psql" env-required:"true"`
+	AppServiceName string        `yaml:"app_service_name" env:"APP_SERVICE_NAME" env-default:"sso"`
+	Env            string        `yaml:"env" env:"ENV" env-required:"true"`
+	TokenTTL       time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" env-required:"true"`
+	GRPC           GRPCConfig    `yaml:"grpc" env-required:"true"`
+	Vault          VaultConfig   `yaml:"vault" env-required:"true"`
+	PSQL           PSQLConfig    `yaml:"psql" env-required:"true"`
 }
 
 type GRPCConfig struct {
