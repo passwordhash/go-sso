@@ -9,6 +9,8 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -19,10 +21,20 @@ type App struct {
 }
 
 // New создает новый экземпляр gRPC сервера.
-func New(log *zap.SugaredLogger, vaultClient *vaultlib.Client, authService authgrpc.Auth, port int) *App {
+func New(
+	log *zap.SugaredLogger,
+	appServiceName string,
+	vaultClient *vaultlib.Client,
+	authService authgrpc.Auth,
+	port int,
+) *App {
 	gRPCServer := grpc.NewServer()
 
 	authgrpc.Register(gRPCServer, vaultClient, authService)
+
+	healthServer := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(gRPCServer, healthServer)
+	healthServer.SetServingStatus(appServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
 
 	reflection.Register(gRPCServer)
 

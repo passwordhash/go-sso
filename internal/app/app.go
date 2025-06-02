@@ -35,6 +35,7 @@ func New(
 	authService := auth.New(log, storage, storage, storage, vaultClient, vaultClient, cfg.TokenTTL)
 
 	grpcApp := grpcapp.New(log,
+		cfg.AppServiceName,
 		vaultClient,
 		authService,
 		cfg.GRPC.Port,

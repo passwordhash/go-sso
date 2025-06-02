@@ -24,8 +24,24 @@ https://github.com/passwordhash/protos (модуль `github.com/passwordhash/pr
 - PostgreSQL 15+
 - Vault (dev-режим для локальной разработки)
 
-### Локальный запуск через Docker Compose
-1. Скопируйте файл `.env.example` в `.env` и заполните значения:
+### Локальный запуск через Docker Compose с live reload
+Для локальной разработки используется Docker Compose с сервисами `app`, `db` (PostgreSQL) и `vault`.
+Сервис `app` автоматически перезапускается при изменении кода благодаря [air](https://github.com/air-verse/air).
+
+1. Если установлен [Taskfile](https://taskfile.dev/)
+	```bash
+	task local-up
+	```
+2. Или можно запустить этой командой (p.s. команда может быть неактуально, лучше заглянуть в [Taskfile.yml](taskfile.yml))
+	```bash
+	docker-compose \
+                   --env-file docker/.env.local \
+                   -f docker/docker-compose.local.yml \
+                   -p go-sso \
+                   up -d --build
+	```
+<!-- 1. Скопируйте файл `.env.example` в `.env` и заполните значения:
+
    ```bash
    cp .env.example .env
    ```
@@ -33,7 +49,7 @@ https://github.com/passwordhash/protos (модуль `github.com/passwordhash/pr
    ```bash
    docker compose -f docker-compose.local.yml up --build
    ```
-3. В контейнере `app` будет запущен gRPC-сервер на порту, заданном в `GRPC_PORT`.
+3. В контейнере `app` будет запущен gRPC-сервер на порту, заданном в `GRPC_PORT`. -->
 
 ### Конфигурация
 Файл конфигурации по умолчанию лежит в `config/local.yml`.
