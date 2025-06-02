@@ -12,8 +12,8 @@ name: CD
 
 on:
     push:
-        # tags:
-        # - "v*.*.*" # любые теги вида v1.0.0
+        tags:
+            - "v*.*.*" # любые теги вида v1.0.0
 
 jobs:
     build:
@@ -25,9 +25,8 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
-            # TEMP
-            # - name: Set version
-            # uses: ./.github/actions/set-version
+            - name: Set version
+              uses: ./.github/actions/set-version
 
             - name: Login to Docker Hub
               uses: docker/login-action@v3
@@ -51,8 +50,8 @@ jobs:
                   platforms: linux/amd64
                   # platforms: linux/amd64, linux/arm64
                   tags: |
-                      ${{ github.repository }}:latest
                       ${{ github.repository }}:${{ env.VERSION }}
+                      ${{ github.repository }}:latest
 
             - name: Upload config as artifact
               uses: actions/upload-artifact@v4
@@ -116,8 +115,6 @@ jobs:
     deploy-dev:
         environment: production
 
-        # needs: build #tests ?
-
         runs-on: ubuntu-latest
 
         env:
@@ -155,8 +152,6 @@ jobs:
         env:
             VAULT_ADDR: http://vault.passwordhash.tech
             CONTAINER_NAME: go-sso
-            CONTAINER_PORT: 50055
-            HOST_CONFIG_PATH: /home/yaroslav/.config/go-sso/
 
         steps:
             - name: Checkout
